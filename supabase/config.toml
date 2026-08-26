@@ -1,0 +1,6 @@
+# Configuração do Supabase CLI (usada em `supabase functions deploy`)
+project_id = "songsfy"
+
+[functions.refresh-catalog]
+# A função é protegida pelo header x-cron-secret (ver index.ts), não por JWT
+verify_jwt = false

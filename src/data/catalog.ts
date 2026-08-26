@@ -1,0 +1,108 @@
+import type { Category, Song } from '../types'
+
+export const CATEGORIES: Category[] = [
+  { id: 'pop', label: 'Pop', emoji: '🎤' },
+  { id: 'rock', label: 'Rock', emoji: '🎸' },
+  { id: 'brasil', label: 'Brasil', emoji: '🇧🇷' },
+  { id: 'sertanejo', label: 'Sertanejo', emoji: '🤠' },
+  { id: 'eletronica', label: 'Eletrônica', emoji: '🎛️' },
+  { id: 'hiphop', label: 'Hip-Hop', emoji: '🎙️' },
+]
+
+export const CATALOG: Song[] = [
+  // ─── Pop ───
+  { id: 'blinding-lights', title: 'Blinding Lights', artist: 'The Weeknd', year: 2019, genre: 'Synth-pop', category: 'pop' },
+  { id: 'shape-of-you', title: 'Shape of You', artist: 'Ed Sheeran', year: 2017, genre: 'Pop', category: 'pop' },
+  { id: 'bad-guy', title: 'bad guy', artist: 'Billie Eilish', year: 2019, genre: 'Electropop', category: 'pop' },
+  { id: 'levitating', title: 'Levitating', artist: 'Dua Lipa', year: 2020, genre: 'Disco-pop', category: 'pop' },
+  { id: 'rolling-in-the-deep', title: 'Rolling in the Deep', artist: 'Adele', year: 2010, genre: 'Soul-pop', category: 'pop' },
+  { id: 'shake-it-off', title: 'Shake It Off', artist: 'Taylor Swift', year: 2014, genre: 'Pop', category: 'pop' },
+  { id: 'uptown-funk', title: 'Uptown Funk', artist: 'Mark Ronson & Bruno Mars', year: 2014, genre: 'Funk-pop', category: 'pop' },
+  { id: 'happy', title: 'Happy', artist: 'Pharrell Williams', year: 2013, genre: 'Pop-soul', category: 'pop' },
+  { id: 'as-it-was', title: 'As It Was', artist: 'Harry Styles', year: 2022, genre: 'Synth-pop', category: 'pop' },
+  { id: 'flowers', title: 'Flowers', artist: 'Miley Cyrus', year: 2023, genre: 'Pop', category: 'pop' },
+  { id: 'firework', title: 'Firework', artist: 'Katy Perry', year: 2010, genre: 'Dance-pop', category: 'pop' },
+  { id: 'poker-face', title: 'Poker Face', artist: 'Lady Gaga', year: 2008, genre: 'Electropop', category: 'pop' },
+  { id: 'cant-stop-the-feeling', title: "Can't Stop the Feeling!", artist: 'Justin Timberlake', year: 2016, genre: 'Disco-pop', category: 'pop' },
+  { id: 'senorita', title: 'Señorita', artist: 'Shawn Mendes & Camila Cabello', year: 2019, genre: 'Pop latino', category: 'pop' },
+  { id: 'stay-laroi', title: 'STAY', artist: 'The Kid LAROI & Justin Bieber', year: 2021, genre: 'Pop', category: 'pop' },
+  { id: 'espresso', title: 'Espresso', artist: 'Sabrina Carpenter', year: 2024, genre: 'Pop', category: 'pop' },
+
+  // ─── Rock ───
+  { id: 'bohemian-rhapsody', title: 'Bohemian Rhapsody', artist: 'Queen', year: 1975, genre: 'Rock progressivo', category: 'rock' },
+  { id: 'smells-like-teen-spirit', title: 'Smells Like Teen Spirit', artist: 'Nirvana', year: 1991, genre: 'Grunge', category: 'rock' },
+  { id: 'sweet-child-o-mine', title: "Sweet Child O' Mine", artist: "Guns N' Roses", year: 1987, genre: 'Hard rock', category: 'rock' },
+  { id: 'back-in-black', title: 'Back in Black', artist: 'AC/DC', year: 1980, genre: 'Hard rock', category: 'rock' },
+  { id: 'hotel-california', title: 'Hotel California', artist: 'Eagles', year: 1976, genre: 'Rock', category: 'rock' },
+  { id: 'wonderwall', title: 'Wonderwall', artist: 'Oasis', year: 1995, genre: 'Britpop', category: 'rock' },
+  { id: 'seven-nation-army', title: 'Seven Nation Army', artist: 'The White Stripes', year: 2003, genre: 'Garage rock', category: 'rock' },
+  { id: 'in-the-end', title: 'In the End', artist: 'Linkin Park', year: 2000, genre: 'Nu metal', category: 'rock' },
+  { id: 'basket-case', title: 'Basket Case', artist: 'Green Day', year: 1994, genre: 'Punk rock', category: 'rock' },
+  { id: 'enter-sandman', title: 'Enter Sandman', artist: 'Metallica', year: 1991, genre: 'Heavy metal', category: 'rock' },
+  { id: 'zombie', title: 'Zombie', artist: 'The Cranberries', year: 1994, genre: 'Rock alternativo', category: 'rock' },
+  { id: 'creep', title: 'Creep', artist: 'Radiohead', year: 1992, genre: 'Rock alternativo', category: 'rock' },
+  { id: 'livin-on-a-prayer', title: "Livin' on a Prayer", artist: 'Bon Jovi', year: 1986, genre: 'Hard rock', category: 'rock' },
+  { id: 'do-i-wanna-know', title: 'Do I Wanna Know?', artist: 'Arctic Monkeys', year: 2013, genre: 'Indie rock', category: 'rock' },
+  { id: 'everlong', title: 'Everlong', artist: 'Foo Fighters', year: 1997, genre: 'Rock alternativo', category: 'rock' },
+  { id: 'believer', title: 'Believer', artist: 'Imagine Dragons', year: 2017, genre: 'Pop rock', category: 'rock' },
+
+  // ─── Brasil ───
+  { id: 'garota-de-ipanema', title: 'Garota de Ipanema', artist: 'Tom Jobim & Vinícius de Moraes', year: 1962, genre: 'Bossa nova', category: 'brasil', searchTerm: 'Garota de Ipanema Antonio Carlos Jobim' },
+  { id: 'tempo-perdido', title: 'Tempo Perdido', artist: 'Legião Urbana', year: 1986, genre: 'Rock nacional', category: 'brasil' },
+  { id: 'anna-julia', title: 'Anna Júlia', artist: 'Los Hermanos', year: 1999, genre: 'Rock nacional', category: 'brasil' },
+  { id: 'exagerado', title: 'Exagerado', artist: 'Cazuza', year: 1985, genre: 'Rock nacional', category: 'brasil' },
+  { id: 'envolver', title: 'Envolver', artist: 'Anitta', year: 2021, genre: 'Pop/Funk', category: 'brasil' },
+  { id: 'trem-bala', title: 'Trem-Bala', artist: 'Ana Vilela', year: 2016, genre: 'Pop nacional', category: 'brasil' },
+  { id: 'aquarela', title: 'Aquarela', artist: 'Toquinho', year: 1983, genre: 'MPB', category: 'brasil' },
+  { id: 'pais-tropical', title: 'País Tropical', artist: 'Jorge Ben Jor', year: 1969, genre: 'MPB', category: 'brasil' },
+  { id: 'velha-infancia', title: 'Velha Infância', artist: 'Tribalistas', year: 2002, genre: 'MPB', category: 'brasil' },
+  { id: 'amor-i-love-you', title: 'Amor I Love You', artist: 'Marisa Monte', year: 2000, genre: 'MPB', category: 'brasil' },
+  { id: 'lanterna-dos-afogados', title: 'Lanterna dos Afogados', artist: 'Os Paralamas do Sucesso', year: 1989, genre: 'Rock nacional', category: 'brasil' },
+  { id: 'deixa-acontecer', title: 'Deixa Acontecer', artist: 'Grupo Revelação', year: 2002, genre: 'Pagode', category: 'brasil' },
+  { id: 'fico-assim-sem-voce', title: 'Fico Assim Sem Você', artist: 'Claudinho & Buchecha', year: 2002, genre: 'Funk melody', category: 'brasil' },
+  { id: 'sorri-sou-rei', title: 'Sorri, Sou Rei', artist: 'Natiruts', year: 2006, genre: 'Reggae', category: 'brasil' },
+
+  // ─── Sertanejo ───
+  { id: 'evidencias', title: 'Evidências', artist: 'Chitãozinho & Xororó', year: 1990, genre: 'Sertanejo raiz', category: 'sertanejo' },
+  { id: 'ai-se-eu-te-pego', title: 'Ai Se Eu Te Pego', artist: 'Michel Teló', year: 2011, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'e-o-amor', title: 'É o Amor', artist: 'Zezé Di Camargo & Luciano', year: 1991, genre: 'Sertanejo romântico', category: 'sertanejo' },
+  { id: 'meteoro', title: 'Meteoro', artist: 'Luan Santana', year: 2009, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'balada', title: 'Balada', artist: 'Gusttavo Lima', year: 2011, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'camaro-amarelo', title: 'Camaro Amarelo', artist: 'Munhoz & Mariano', year: 2012, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'amo-noite-e-dia', title: 'Amo Noite e Dia', artist: 'Jorge & Mateus', year: 2011, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'medo-bobo', title: 'Medo Bobo', artist: 'Maiara & Maraisa', year: 2016, genre: 'Sofrência', category: 'sertanejo' },
+  { id: 'infiel', title: 'Infiel', artist: 'Marília Mendonça', year: 2015, genre: 'Sofrência', category: 'sertanejo' },
+  { id: 'notificacao-preferida', title: 'Notificação Preferida', artist: 'Zé Neto & Cristiano', year: 2019, genre: 'Sertanejo universitário', category: 'sertanejo' },
+  { id: 'regime-fechado', title: 'Regime Fechado', artist: 'Simone & Simaria', year: 2018, genre: 'Sofrência', category: 'sertanejo' },
+  { id: 'jenifer', title: 'Jenifer', artist: 'Gabriel Diniz', year: 2018, genre: 'Forró', category: 'sertanejo' },
+
+  // ─── Eletrônica ───
+  { id: 'wake-me-up', title: 'Wake Me Up', artist: 'Avicii', year: 2013, genre: 'EDM', category: 'eletronica' },
+  { id: 'titanium', title: 'Titanium', artist: 'David Guetta & Sia', year: 2011, genre: 'EDM', category: 'eletronica' },
+  { id: 'animals', title: 'Animals', artist: 'Martin Garrix', year: 2013, genre: 'Big room', category: 'eletronica' },
+  { id: 'lean-on', title: 'Lean On', artist: 'Major Lazer & DJ Snake', year: 2015, genre: 'Moombahton', category: 'eletronica' },
+  { id: 'faded', title: 'Faded', artist: 'Alan Walker', year: 2015, genre: 'Electro house', category: 'eletronica' },
+  { id: 'dont-you-worry-child', title: "Don't You Worry Child", artist: 'Swedish House Mafia', year: 2012, genre: 'Progressive house', category: 'eletronica' },
+  { id: 'closer', title: 'Closer', artist: 'The Chainsmokers', year: 2016, genre: 'Future bass', category: 'eletronica' },
+  { id: 'get-lucky', title: 'Get Lucky', artist: 'Daft Punk', year: 2013, genre: 'Disco/Electro', category: 'eletronica' },
+  { id: 'clarity', title: 'Clarity', artist: 'Zedd', year: 2012, genre: 'Electro house', category: 'eletronica' },
+  { id: 'summer', title: 'Summer', artist: 'Calvin Harris', year: 2014, genre: 'EDM', category: 'eletronica' },
+  { id: 'where-are-u-now', title: 'Where Are Ü Now', artist: 'Skrillex & Diplo (Justin Bieber)', year: 2015, genre: 'Future bass', category: 'eletronica', searchTerm: 'Where Are U Now Skrillex Diplo Justin Bieber' },
+  { id: 'cold-heart', title: 'Cold Heart (PNAU Remix)', artist: 'Elton John & Dua Lipa', year: 2021, genre: 'Dance', category: 'eletronica', searchTerm: 'Cold Heart PNAU Elton John Dua Lipa' },
+
+  // ─── Hip-Hop ───
+  { id: 'lose-yourself', title: 'Lose Yourself', artist: 'Eminem', year: 2002, genre: 'Rap', category: 'hiphop' },
+  { id: 'in-da-club', title: 'In Da Club', artist: '50 Cent', year: 2003, genre: 'Rap', category: 'hiphop' },
+  { id: 'humble', title: 'HUMBLE.', artist: 'Kendrick Lamar', year: 2017, genre: 'Rap', category: 'hiphop' },
+  { id: 'gods-plan', title: "God's Plan", artist: 'Drake', year: 2018, genre: 'Rap', category: 'hiphop' },
+  { id: 'sicko-mode', title: 'SICKO MODE', artist: 'Travis Scott', year: 2018, genre: 'Trap', category: 'hiphop' },
+  { id: 'old-town-road', title: 'Old Town Road', artist: 'Lil Nas X', year: 2019, genre: 'Country rap', category: 'hiphop' },
+  { id: 'empire-state-of-mind', title: 'Empire State of Mind', artist: 'JAY-Z & Alicia Keys', year: 2009, genre: 'Hip-hop', category: 'hiphop' },
+  { id: 'stronger', title: 'Stronger', artist: 'Kanye West', year: 2007, genre: 'Hip-hop', category: 'hiphop' },
+  { id: 'gangstas-paradise', title: "Gangsta's Paradise", artist: 'Coolio', year: 1995, genre: 'Gangsta rap', category: 'hiphop' },
+  { id: 'still-dre', title: 'Still D.R.E.', artist: 'Dr. Dre & Snoop Dogg', year: 1999, genre: 'West coast', category: 'hiphop' },
+  { id: 'juicy', title: 'Juicy', artist: 'The Notorious B.I.G.', year: 1994, genre: 'East coast', category: 'hiphop' },
+  { id: 'super-bass', title: 'Super Bass', artist: 'Nicki Minaj', year: 2010, genre: 'Pop rap', category: 'hiphop' },
+]
+
+export const songById = new Map(CATALOG.map((s) => [s.id, s]))
