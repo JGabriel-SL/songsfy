@@ -63,5 +63,14 @@ export function usePreviewPlayer() {
     setPlaying(false)
   }, [])
 
-  return { play, stop, playing, position }
+  /** Baixa `src` antecipadamente (sem tocar), para o `play` seguinte sair sem espera. */
+  const preload = useCallback((src: string) => {
+    const audio = audioRef.current
+    if (!audio || audio.src === src) return
+    audio.pause()
+    audio.src = src
+    audio.load()
+  }, [])
+
+  return { play, stop, preload, playing, position }
 }

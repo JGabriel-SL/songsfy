@@ -151,6 +151,29 @@ export function Home({ onNavigate }: HomeProps) {
             <span className="mode-card__cta">{bestBlitz > 0 ? `🏆 ${bestBlitz} acertos` : 'Jogar →'}</span>
           </motion.button>
         </div>
+
+        <motion.h2 className="home__section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
+          ⚔️ Multiplayer — desafie os amigos
+        </motion.h2>
+
+        <motion.button
+          type="button"
+          className="mode-card mode-card--battle"
+          custom={5}
+          variants={cardVariants}
+          initial="hidden"
+          animate="show"
+          whileHover={{ y: -6, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onNavigate('battle')}
+        >
+          <span className="mode-card__emoji">⚔️</span>
+          <span className="mode-card__name">Batalha</span>
+          <span className="mode-card__desc">
+            Crie uma sala, convide a galera e veja quem reconhece a música mais rápido. Ao vivo, estilo Kahoot.
+          </span>
+          <span className="mode-card__cta">{auth.online ? 'Criar sala →' : 'Requer modo online'}</span>
+        </motion.button>
       </div>
 
       <motion.p className="home__footer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>

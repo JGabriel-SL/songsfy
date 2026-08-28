@@ -6,6 +6,7 @@ import { SetDaily } from './components/SetDaily'
 import { CoverDaily } from './components/CoverDaily'
 import { Marathon } from './components/Marathon'
 import { Blitz } from './components/Blitz'
+import { Battle } from './components/Battle'
 import { Account } from './components/Account'
 import { Rankings } from './components/Rankings'
 import { Equalizer } from './components/Equalizer'
@@ -13,7 +14,7 @@ import { AuthProvider } from './lib/auth'
 import { initRemoteData } from './lib/catalog-remote'
 import { flushQueue } from './lib/sync'
 
-export type Screen = 'home' | 'single' | 'set' | 'cover' | 'marathon' | 'blitz' | 'account' | 'rankings'
+export type Screen = 'home' | 'single' | 'set' | 'cover' | 'marathon' | 'blitz' | 'battle' | 'account' | 'rankings'
 
 const TITLES: Record<Screen, string> = {
   home: '',
@@ -22,12 +23,14 @@ const TITLES: Record<Screen, string> = {
   cover: '🖼️ Capa do Dia',
   marathon: '🏃 Maratona',
   blitz: '⚡ Relâmpago',
+  battle: '⚔️ Batalha',
   account: '👤 Conta',
   rankings: '🏆 Ranking',
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home')
+  // Link de convite (?room=CODE) abre direto na Batalha
+  const [screen, setScreen] = useState<Screen>(() => (new URLSearchParams(window.location.search).has('room') ? 'battle' : 'home'))
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -79,6 +82,7 @@ export default function App() {
               {screen === 'cover' && <CoverDaily />}
               {screen === 'marathon' && <Marathon />}
               {screen === 'blitz' && <Blitz />}
+              {screen === 'battle' && <Battle />}
               {screen === 'account' && <Account />}
               {screen === 'rankings' && <Rankings />}
             </motion.main>
