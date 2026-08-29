@@ -215,7 +215,20 @@ export function Marathon() {
             <strong>{score} pts</strong> · {hits} {hits === 1 ? 'acerto' : 'acertos'}
           </p>
           <p className="result__meta">🏆 Recorde: {best} pts</p>
-          <ShareButton text={`Songsfy 🏃 Maratona\n🏆 ${score} pts · ${hits} acertos`} />
+          <ShareButton
+            text={`Songsfy 🏃 Maratona\n🏆 ${score} pts · ${hits} acertos`}
+            story={{
+              mode: 'Maratona',
+              emoji: '🏃',
+              subline: `${LIVES} vidas`,
+              headline: score >= best && score > 0 ? 'Novo recorde! 🏆' : 'Fim de jogo! 🎬',
+              stats: [
+                { label: 'Pontos', value: score },
+                { label: 'Acertos', value: hits },
+                { label: 'Recorde', value: best },
+              ],
+            }}
+          />
           <button type="button" className="btn btn--ghost" onClick={start}>
             🔄 Jogar de novo
           </button>

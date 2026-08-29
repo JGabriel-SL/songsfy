@@ -213,7 +213,19 @@ export function Blitz() {
             <strong>{score}</strong> {score === 1 ? 'acerto' : 'acertos'} em {START_SECONDS}s (+bônus)
           </p>
           <p className="result__meta">🏆 Recorde: {best} acertos</p>
-          <ShareButton text={`Songsfy ⚡ Relâmpago\n🏆 ${score} acertos contra o relógio`} />
+          <ShareButton
+            text={`Songsfy ⚡ Relâmpago\n🏆 ${score} acertos contra o relógio`}
+            story={{
+              mode: 'Relâmpago',
+              emoji: '⚡',
+              subline: `${START_SECONDS}s contra o relógio`,
+              headline: score >= best && score > 0 ? 'Novo recorde! 🏆' : 'Tempo esgotado! ⏱',
+              stats: [
+                { label: 'Acertos', value: score },
+                { label: 'Recorde', value: best },
+              ],
+            }}
+          />
           <button type="button" className="btn btn--ghost" onClick={start}>
             🔄 Jogar de novo
           </button>

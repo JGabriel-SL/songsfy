@@ -731,6 +731,17 @@ function Podium({ ranked, me, onLeave }: { ranked: RoomState['players']; me: str
       </p>
       <ShareButton
         text={`Songsfy ⚔️ Batalha\n${top.map((p, i) => `${MEDALS[i]} ${nick(p)} — ${p.score} pts`).join('\n')}`}
+        story={{
+          mode: 'Batalha',
+          emoji: '⚔️',
+          subline: `${ranked.length} jogadores`,
+          headline: myPos === 1 ? 'Venci a Batalha! 🏆' : `Fiquei em ${myPos}º lugar`,
+          lines: top.map((p, i) => `${MEDALS[i]} ${p.avatar_emoji} ${nick(p)} — ${p.score} pts`),
+          stats: [
+            { label: 'Posição', value: `${myPos}º` },
+            { label: 'Pontos', value: ranked.find((p) => p.user_id === me)?.score ?? 0 },
+          ],
+        }}
       />
       <button type="button" className="btn btn--ghost" onClick={onLeave}>
         🔄 Nova sala

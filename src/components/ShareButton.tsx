@@ -33,7 +33,7 @@ export function ShareButton({ text, story }: Props) {
     if (story) {
       try {
         const blob = await renderStoryImage(story)
-        file = new File([blob], `songsfy-${story.day}.png`, { type: 'image/png' })
+        file = new File([blob], `songsfy-${story.day ?? Date.now()}.png`, { type: 'image/png' })
       } catch {
         file = null
       }

@@ -7,12 +7,16 @@ export interface StoryData {
   /** Ex.: "Música do Dia" */
   mode: string
   emoji: string
-  day: number
-  cells: StoryCell[]
+  /** Número do desafio diário; ausente nos modos arcade */
+  day?: number
+  /** Grade de tentativas; ausente nos modos arcade */
+  cells?: StoryCell[]
   /** Ex.: "Acertei em 3/6!" */
   headline: string
   /** Ex.: "Pop" */
   subline?: string
+  /** Linhas extras abaixo da headline (ex.: pódio da Batalha) */
+  lines?: string[]
   stats?: { label: string; value: string | number }[]
 }
 
@@ -100,11 +104,17 @@ export async function renderStoryImage(data: StoryData): Promise<Blob> {
   ctx.fillStyle = COLORS.dim
   ctx.fillText('jogos de música · um por dia', W / 2, 480)
 
-  // ── Cartão central ──
+  // ── Cartão central (altura depende do que há para mostrar) ──
+  const cells = data.cells ?? []
+  const lines = data.lines ?? []
+  const hasStats = !!data.stats?.length
   const cardX = 90
-  const cardY = 600
   const cardW = W - 180
-  const cardH = data.stats?.length ? 820 : 620
+  const cellsH = cells.length ? 150 : 0
+  const linesH = lines.length * 80
+  const statsH = hasStats ? 200 : 0
+  const cardH = 300 + cellsH + 120 + linesH + statsH + 60
+  const cardY = Math.max(560, Math.round((H - cardH) / 2) - 60)
   ctx.save()
   ctx.shadowColor = 'rgba(255,77,90,0.25)'
   ctx.shadowBlur = 60
@@ -122,38 +132,55 @@ export async function renderStoryImage(data: StoryData): Promise<Blob> {
   ctx.font = `700 54px ${FONT}`
   ctx.fillStyle = COLORS.text
   ctx.fillText(`${data.emoji} ${data.mode}`, W / 2, cardY + 110)
+  const meta = [data.day != null ? `#${data.day}` : null, data.subline ?? null].filter(Boolean).join(' · ')
   ctx.font = `600 38px ${FONT}`
   ctx.fillStyle = COLORS.dim
-  ctx.fillText(`#${data.day}${data.subline ? ` · ${data.subline}` : ''}`, W / 2, cardY + 175)
+  if (meta) ctx.fillText(meta, W / 2, cardY + 175)
+
+  let y = cardY + (meta ? 240 : 200)
 
   // Quadradinhos
-  const cellSize = 96
-  const gap = 20
-  const totalW = data.cells.length * cellSize + (data.cells.length - 1) * gap
-  let cx = W / 2 - totalW / 2
-  const cy = cardY + 290
-  for (const cell of data.cells) {
-    roundRect(ctx, cx, cy - cellSize / 2, cellSize, cellSize, 22)
-    ctx.fillStyle = COLORS[cell]
-    ctx.fill()
-    if (cell === 'skip') {
-      ctx.fillStyle = COLORS.text
-      ctx.font = `700 52px ${FONT}`
-      ctx.fillText('›', cx + cellSize / 2, cy + 2)
+  if (cells.length) {
+    const cellSize = 96
+    const gap = 20
+    const totalW = cells.length * cellSize + (cells.length - 1) * gap
+    let cx = W / 2 - totalW / 2
+    const cy = y + cellSize / 2
+    for (const cell of cells) {
+      roundRect(ctx, cx, cy - cellSize / 2, cellSize, cellSize, 22)
+      ctx.fillStyle = COLORS[cell]
+      ctx.fill()
+      if (cell === 'skip') {
+        ctx.fillStyle = COLORS.text
+        ctx.font = `700 52px ${FONT}`
+        ctx.fillText('›', cx + cellSize / 2, cy + 2)
+      }
+      cx += cellSize + gap
     }
-    cx += cellSize + gap
+    y += cellsH
   }
 
   // Headline
   ctx.font = `800 64px ${FONT}`
   ctx.fillStyle = COLORS.text
-  ctx.fillText(data.headline, W / 2, cardY + 440)
+  ctx.fillText(data.headline, W / 2, y + 50)
+  y += 120
+
+  // Linhas extras (pódio etc.)
+  if (lines.length) {
+    ctx.font = `600 44px ${FONT}`
+    ctx.fillStyle = COLORS.text
+    for (const line of lines) {
+      ctx.fillText(line, W / 2, y + 30)
+      y += 80
+    }
+  }
 
   // Stats
   if (data.stats?.length) {
     const cols = data.stats.length
     const colW = (cardW - 80) / cols
-    const sy = cardY + 620
+    const sy = y + 90
     data.stats.forEach((s, i) => {
       const sx = cardX + 40 + colW * i + colW / 2
       ctx.font = `900 72px ${FONT}`
