@@ -101,7 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     signUpEmail: async (email, password) => {
       if (!supabase) return 'Modo online não configurado.'
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      })
       return error ? friendly(error.message) : null
     },
 
@@ -120,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     linkEmail: async (email, password) => {
       if (!supabase) return 'Modo online não configurado.'
-      const { error } = await supabase.auth.updateUser({ email, password })
+      const { error } = await supabase.auth.updateUser({ email, password }, { emailRedirectTo: window.location.origin })
       return error ? friendly(error.message) : null
     },
 

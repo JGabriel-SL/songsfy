@@ -11,7 +11,6 @@ import { ShareButton } from './ShareButton'
 import type { CategoryId, TrackInfo } from '../types'
 
 const ROOM_KEY = 'songsfy:battle:room:v1'
-const COUNTDOWN_MS = 3000
 const ROUND_OPTIONS = [5, 10, 15]
 const SECONDS_OPTIONS = [10, 15, 20]
 const MEDALS = ['🥇', '🥈', '🥉']

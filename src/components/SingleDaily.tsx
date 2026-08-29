@@ -11,6 +11,7 @@ import { Guessbox } from './Guessbox'
 import { Vinyl } from './Vinyl'
 import { Equalizer } from './Equalizer'
 import { ShareButton } from './ShareButton'
+import type { StoryData } from '../lib/storyImage'
 import type { TrackInfo } from '../types'
 
 const CLIPS = [1, 2, 4, 7, 11, 16]
@@ -109,6 +110,20 @@ export function SingleDaily() {
     const tail = state.status === 'won' ? '' : '❌'
     return `Songsfy 🎧 Música do Dia #${dayNumber()}\n${squares}${tail}\n${state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…'}`
   }
+
+  const storyData = (): StoryData => ({
+    mode: 'Música do Dia',
+    emoji: '🎧',
+    day: dayNumber(),
+    cells: state.guesses.map((g) => (g === answer.id ? 'ok' : g === SKIP ? 'skip' : 'bad')),
+    headline: state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…',
+    stats: [
+      { label: 'Sequência', value: stats.streak },
+      { label: 'Recorde', value: stats.maxStreak },
+      { label: 'Vitórias', value: stats.wins },
+      { label: 'Jogos', value: stats.played },
+    ],
+  })
 
   if (loadError) {
     return (
@@ -231,7 +246,7 @@ export function SingleDaily() {
 
           <div className="result__squares">{state.guesses.map((g, i) => <span key={i}>{g === answer.id ? '🟩' : g === SKIP ? '⏭️' : '🟥'}</span>)}</div>
 
-          <ShareButton text={shareText()} />
+          <ShareButton text={shareText()} story={storyData()} />
 
           <div className="stats">
             <div className="stats__item"><strong>{stats.streak}</strong><span>Sequência</span></div>

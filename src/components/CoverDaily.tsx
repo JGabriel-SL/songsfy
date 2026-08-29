@@ -10,6 +10,7 @@ import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
 import { Equalizer } from './Equalizer'
 import { Guessbox } from './Guessbox'
 import { ShareButton } from './ShareButton'
+import type { StoryData } from '../lib/storyImage'
 import type { TrackInfo } from '../types'
 
 const MAX = 6
@@ -90,6 +91,20 @@ export function CoverDaily() {
       state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…'
     }`
   }
+
+  const storyData = (): StoryData => ({
+    mode: 'Capa do Dia',
+    emoji: '🖼️',
+    day: dayNumber(),
+    cells: state.guesses.map((g) => (g === answer.id ? 'ok' : 'bad')),
+    headline: state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…',
+    stats: [
+      { label: 'Sequência', value: stats.streak },
+      { label: 'Recorde', value: stats.maxStreak },
+      { label: 'Vitórias', value: stats.wins },
+      { label: 'Jogos', value: stats.played },
+    ],
+  })
 
   if (loadError) {
     return (
@@ -189,7 +204,7 @@ export function CoverDaily() {
 
           <div className="result__squares">{state.guesses.map((g, i) => <span key={i}>{g === answer.id ? '🟩' : '🟥'}</span>)}</div>
 
-          <ShareButton text={shareText()} />
+          <ShareButton text={shareText()} story={storyData()} />
 
           <div className="stats">
             <div className="stats__item"><strong>{stats.streak}</strong><span>Sequência</span></div>

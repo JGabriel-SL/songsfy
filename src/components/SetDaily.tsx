@@ -10,6 +10,7 @@ import { loadDayState, saveDayState } from '../lib/storage'
 import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
 import { Equalizer } from './Equalizer'
 import { ShareButton } from './ShareButton'
+import type { StoryData } from '../lib/storyImage'
 import type { CategoryId, Song, TrackInfo } from '../types'
 
 const TRACKS = 6
@@ -171,6 +172,15 @@ export function SetDaily() {
     return `Songsfy 🔥 Músicas do Dia · ${cat?.label} #${dayNumber()}\n${squares} ${score}/${TRACKS}`
   }
 
+  const storyData = (): StoryData => ({
+    mode: 'Músicas do Dia',
+    emoji: '🔥',
+    day: dayNumber(),
+    subline: CATEGORIES.find((c) => c.id === category)?.label,
+    cells: state.tracks.map((t) => (t.status === 'ok' ? 'ok' : 'bad')),
+    headline: score === TRACKS ? `Gabaritei! ${score}/${TRACKS} 🏆` : `${score}/${TRACKS} acertos`,
+  })
+
   return (
     <div className="game">
       <div className="cats">
@@ -226,7 +236,7 @@ export function SetDaily() {
             })}
           </ul>
 
-          <ShareButton text={shareText()} />
+          <ShareButton text={shareText()} story={storyData()} />
           <p className="result__comeback">Amanhã tem mais 6! 🌅</p>
         </motion.div>
       ) : (

@@ -53,7 +53,10 @@ button {
   min-height: 100svh;
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px 16px 48px;
+  /* safe-area: no iPhone (viewport-fit=cover + status bar translúcida) o conteúdo
+     vai por baixo do notch/Dynamic Island e da home bar — compensa com env() */
+  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+    calc(48px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
 }
