@@ -4,7 +4,7 @@
 // 3) Gera os desafios diários (hoje + amanhã) compartilhados por todos os jogadores.
 //
 // Proteção: exige o header `x-cron-secret` igual ao secret CRON_SECRET do projeto.
-// Agende via Supabase Cron (ou pg_cron + pg_net) com esse header.
+// Agendada por pg_cron + pg_net em supabase/migrations/0005_cron_refresh_catalog.sql (03:00 BRT).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
