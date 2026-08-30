@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const supabaseUrl = env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ?? ''
   const supabaseAnonKey = env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? ''
+  console.log(
+    `[songsfy] Supabase no build: url=${supabaseUrl ? supabaseUrl : 'AUSENTE'} · anonKey=${supabaseAnonKey ? 'ok' : 'AUSENTE'}`,
+  )
 
   return {
     define: {
