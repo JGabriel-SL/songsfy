@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:catalog": "node --env-file=.env.local scripts/seed-catalog.mjs",
+    "seed:catalog:dry": "node --env-file=.env.local scripts/seed-catalog.mjs --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

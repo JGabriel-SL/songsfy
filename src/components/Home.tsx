@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { dayNumber } from '../lib/daily'
 import { loadBest } from '../lib/storage'
 import { useAuth } from '../lib/auth'
+import { useFriends } from '../lib/friends'
 import { Equalizer } from './Equalizer'
 import type { Screen } from '../App'
 
@@ -21,6 +22,7 @@ const cardVariants = {
 
 export function Home({ onNavigate }: HomeProps) {
   const auth = useAuth()
+  const { pendingCount } = useFriends()
   const bestMarathon = loadBest('marathon')
   const bestBlitz = loadBest('blitz')
 
@@ -29,6 +31,10 @@ export function Home({ onNavigate }: HomeProps) {
       <motion.div className="home__topactions" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
         <button type="button" className="chip" onClick={() => onNavigate('rankings')}>
           🏆 Ranking
+        </button>
+        <button type="button" className="chip" onClick={() => onNavigate('friends')}>
+          👥 Amigos
+          {pendingCount > 0 && <span className="chip__badge">{pendingCount}</span>}
         </button>
         <button type="button" className="chip" onClick={() => onNavigate('account')}>
           {auth.user ? `${auth.profile?.avatar_emoji ?? '👤'} ${auth.profile?.nickname ?? 'Perfil'}` : '👤 Entrar'}
@@ -177,7 +183,7 @@ export function Home({ onNavigate }: HomeProps) {
       </div>
 
       <motion.p className="home__footer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-        Novas músicas todo dia à meia-noite 🌙 · Prévias via iTunes · v8
+        Novas músicas todo dia à meia-noite 🌙 · Prévias via iTunes · v9
       </motion.p>
     </div>
   )

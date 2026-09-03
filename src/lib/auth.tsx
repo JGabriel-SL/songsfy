@@ -2,11 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { User } from '@supabase/supabase-js'
 import { supabase, onlineEnabled } from './supabase'
 import { flushQueue, importLocalStatsOnce } from './sync'
+import { syncPushSubscription, unsubscribePushOnSignOut } from './push'
 
 export interface Profile {
   id: string
   nickname: string | null
   avatar_emoji: string
+  friend_code: string | null
 }
 
 interface AuthContextValue {
@@ -45,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string) => {
     if (!supabase) return
-    const { data } = await supabase.from('profiles').select('id,nickname,avatar_emoji').eq('id', userId).maybeSingle()
+    const { data } = await supabase.from('profiles').select('id,nickname,avatar_emoji,friend_code').eq('id', userId).maybeSingle()
     if (data) setProfile(data as Profile)
   }, [])
 
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void loadProfile(u.id)
         void flushQueue()
         void importLocalStatsOnce()
+        void syncPushSubscription()
       } else {
         setProfile(null)
       }
@@ -131,6 +134,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateProfile,
 
     signOut: async () => {
+      // o dispositivo não deve continuar recebendo avisos desta conta
+      await unsubscribePushOnSignOut().catch(() => {})
       await supabase?.auth.signOut()
     },
   }
