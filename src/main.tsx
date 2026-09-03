@@ -12,6 +12,12 @@ if (new URLSearchParams(location.search).has('reset')) {
   history.replaceState(null, '', location.pathname)
 }
 
+// O Safari do iOS ignora `user-scalable=no`: bloquear os eventos de pinça é o que
+// impede o zoom lá. Duplo-toque e pinça no Android já param no `touch-action` do CSS.
+for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+  document.addEventListener(type, (e) => e.preventDefault(), { passive: false })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
