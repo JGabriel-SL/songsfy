@@ -708,6 +708,13 @@ button {
 }
 .tracklist__play:hover:not(:disabled) { transform: scale(1.12); }
 .tracklist__play:disabled { opacity: 0.4; }
+.tracklist__play--on {
+  box-shadow: 0 0 0 3px rgba(255, 192, 46, 0.35);
+  animation: pulsePlay 1.4s ease-in-out infinite;
+}
+@keyframes pulsePlay {
+  50% { transform: scale(1.1); }
+}
 .tracklist__mark { font-size: 18px; }
 
 /* ─── Modos arcade (Maratona / Relâmpago) ─── */
