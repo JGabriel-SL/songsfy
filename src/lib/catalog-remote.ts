@@ -4,7 +4,7 @@
 
 import { CATALOG } from '../data/catalog'
 import { dailyRng, seededShuffle, todayKey } from './daily'
-import { fetchTrack } from './itunes'
+import { fetchAlbumTrack, fetchTrack, isSingleRelease } from './itunes'
 import { supabase } from './supabase'
 import type { CategoryId, Song, TrackInfo } from '../types'
 
@@ -150,6 +150,35 @@ export async function getTrack(song: Song): Promise<TrackInfo | null> {
   const fromDb = remote?.tracks.get(song.id)
   if (fromDb) return fromDb
   return fetchTrack(song)
+}
+
+/**
+ * Como `getTrack`, mas garantindo capa de álbum: quando o que está no banco é um
+ * lançamento avulso ("… - Single"/"… - EP"), busca na iTunes a versão em álbum.
+ */
+export async function getAlbumTrack(song: Song): Promise<TrackInfo | null> {
+  const fromDb = remote?.tracks.get(song.id)
+  if (fromDb && fromDb.artworkUrl && fromDb.album && !isSingleRelease(fromDb.album)) return fromDb
+  return (await fetchAlbumTrack(song)) ?? fromDb ?? null
+}
+
+/**
+ * Músicas-isca da Capa do Dia: cada uma rende um álbum para as opções de palpite.
+ * Determinístico por dia, uma por artista e priorizando a mesma categoria da resposta.
+ */
+export function dailyCoverDecoys(answer: Song, count: number): Song[] {
+  const rng = dailyRng('cover:options')
+  const pool = seededShuffle(
+    playableSongs().filter((s) => s.id !== answer.id && s.artist !== answer.artist),
+    rng,
+  )
+  const byArtist = new Map<string, Song>()
+  for (const s of pool) if (!byArtist.has(s.artist)) byArtist.set(s.artist, s)
+  const unique = [...byArtist.values()]
+  return [
+    ...unique.filter((s) => s.category === answer.category),
+    ...unique.filter((s) => s.category !== answer.category),
+  ].slice(0, count)
 }
 
 // ─── Desafios do dia (remoto → fallback: sorteio determinístico local) ───

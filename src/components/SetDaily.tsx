@@ -120,9 +120,8 @@ export function SetDaily() {
     [targets, state.tracks],
   )
 
-  const toggleTrack = (i: number) => {
-    if (state.tracks[i].status === 'pending') setActive(i)
-    const info = tracks.get(targets[i].id)
+  /** Toca a prévia da faixa `i`; se ela já estiver tocando, para. */
+  const togglePreview = (i: number, info: TrackInfo | undefined) => {
     if (!info) return
     if (playingIdx === i) {
       stop()
@@ -131,6 +130,11 @@ export function SetDaily() {
       play(info.previewUrl)
       setPlayingIdx(i)
     }
+  }
+
+  const toggleTrack = (i: number) => {
+    if (state.tracks[i].status === 'pending') setActive(i)
+    togglePreview(i, tracks.get(targets[i].id))
   }
 
   const resolve = (idx: number, ok: boolean) => {
@@ -223,12 +227,12 @@ export function SetDaily() {
                   </div>
                   <button
                     type="button"
-                    className="tracklist__play"
+                    className={`tracklist__play ${playingIdx === i ? 'tracklist__play--on' : ''}`}
                     disabled={!info}
-                    onClick={() => info && play(info.previewUrl)}
-                    aria-label={`Ouvir ${t.title}`}
+                    onClick={() => togglePreview(i, info)}
+                    aria-label={`${playingIdx === i ? 'Parar' : 'Ouvir'} ${t.title}`}
                   >
-                    ▶
+                    {playingIdx === i ? '◼' : '▶'}
                   </button>
                   <span className="tracklist__mark">{state.tracks[i].status === 'ok' ? '✅' : '❌'}</span>
                 </motion.li>

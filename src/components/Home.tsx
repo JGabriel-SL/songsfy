@@ -107,7 +107,7 @@ export function Home({ onNavigate }: HomeProps) {
           <span className="mode-card__emoji">🖼️</span>
           <span className="mode-card__name">Capa do Dia</span>
           <span className="mode-card__desc">
-            A capa do álbum começa borrada e clareia a cada erro. Reconheça em 6 tentativas.
+            A capa começa borrada e clareia a cada erro. Descubra de qual álbum ela é em 6 tentativas.
           </span>
           <span className="mode-card__cta">Jogar →</span>
         </motion.button>

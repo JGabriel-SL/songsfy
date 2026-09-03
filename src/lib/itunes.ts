@@ -24,6 +24,16 @@ function normalize(s: string): string {
     .trim()
 }
 
+/** "Flowers - Single" / "Nome - EP": lançamento avulso, cuja capa é da faixa e não de um álbum. */
+export function isSingleRelease(album: string): boolean {
+  return /\s-\s(single|ep)$/i.test(album.trim())
+}
+
+/** Chave para comparar nomes de álbum vindos de lojas/idiomas diferentes. */
+export function albumKey(album: string): string {
+  return normalize(album)
+}
+
 function readCache(id: string): TrackInfo | null {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + id)
@@ -59,10 +69,8 @@ async function searchAt(url: string): Promise<{ list: ItunesResult[]; tag: strin
   }
 }
 
-export async function fetchTrack(song: Song): Promise<TrackInfo | null> {
-  const cached = readCache(song.id)
-  if (cached) return cached
-
+/** Busca a música na iTunes API e devolve os resultados que têm prévia. */
+async function searchSong(song: Song): Promise<ItunesResult[]> {
   const term = encodeURIComponent(song.searchTerm ?? `${song.title} ${song.artist}`)
   const query = (params: string) => `search?term=${term}&media=music&entity=song&limit=25&${params}`
 
@@ -89,25 +97,58 @@ export async function fetchTrack(song: Song): Promise<TrackInfo | null> {
   }
 
   const withPreview = results.filter((r) => r.previewUrl)
-  if (withPreview.length === 0) {
-    lastDiag = diag.join(' ')
-    return null
-  }
+  if (withPreview.length === 0) lastDiag = diag.join(' ')
+  return withPreview
+}
 
+/** Resultados que batem com a música pedida, dos mais para os menos confiáveis. */
+function ranked(results: ItunesResult[], song: Song): ItunesResult[] {
   const wantTitle = normalize(song.title)
   const wantArtist = normalize(song.artist).split(' ')[0]
-  const best =
-    withPreview.find(
-      (r) => normalize(r.trackName ?? '').includes(wantTitle) && normalize(r.artistName ?? '').includes(wantArtist),
-    ) ??
-    withPreview.find((r) => normalize(r.trackName ?? '').includes(wantTitle)) ??
-    withPreview[0]
+  const exact = results.filter(
+    (r) => normalize(r.trackName ?? '').includes(wantTitle) && normalize(r.artistName ?? '').includes(wantArtist),
+  )
+  const byTitle = results.filter((r) => normalize(r.trackName ?? '').includes(wantTitle))
+  return [...exact, ...byTitle, ...results]
+}
 
-  const info: TrackInfo = {
+function toInfo(best: ItunesResult): TrackInfo {
+  return {
     previewUrl: best.previewUrl!,
     artworkUrl: (best.artworkUrl100 ?? '').replace('100x100', '600x600'),
     album: best.collectionName ?? '',
   }
+}
+
+export async function fetchTrack(song: Song): Promise<TrackInfo | null> {
+  const cached = readCache(song.id)
+  if (cached) return cached
+
+  const withPreview = await searchSong(song)
+  if (withPreview.length === 0) return null
+
+  const info = toInfo(ranked(withPreview, song)[0])
   writeCache(song.id, info)
+  return info
+}
+
+/**
+ * Igual a `fetchTrack`, mas prefere a versão da música que sai em um álbum de verdade,
+ * para que a capa seja a do álbum e não a arte avulsa do single.
+ */
+export async function fetchAlbumTrack(song: Song): Promise<TrackInfo | null> {
+  const cacheId = `${song.id}:album`
+  const cached = readCache(cacheId)
+  if (cached) return cached
+
+  const withPreview = await searchSong(song)
+  if (withPreview.length === 0) return null
+
+  const candidates = ranked(withPreview, song)
+  // Nenhuma versão em álbum disponível (música só existe como single): mantém a que houver.
+  const best = candidates.find((r) => r.collectionName && !isSingleRelease(r.collectionName)) ?? candidates[0]
+
+  const info = toInfo(best)
+  writeCache(cacheId, info)
   return info
 }

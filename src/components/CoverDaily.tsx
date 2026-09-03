@@ -1,55 +1,92 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
-import { dayNumber } from '../lib/daily'
-import { dailyCoverAnswer, gameSongById, getTrack } from '../lib/catalog-remote'
-import { lastDiag } from '../lib/itunes'
+import { dailyRng, dayNumber, seededShuffle } from '../lib/daily'
+import { dailyCoverAnswer, dailyCoverDecoys, getAlbumTrack } from '../lib/catalog-remote'
+import { albumKey, lastDiag } from '../lib/itunes'
 import { submitResult } from '../lib/sync'
 import { loadDayState, saveDayState, loadStats, recordResult, type Stats } from '../lib/storage'
-import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
 import { Equalizer } from './Equalizer'
-import { Guessbox } from './Guessbox'
 import { ShareButton } from './ShareButton'
 import type { StoryData } from '../lib/storyImage'
 import type { TrackInfo } from '../types'
 
 const MAX = 6
+const OPTIONS = 9
+// Iscas buscadas: sobra para descartar as que não resolvem álbum ou repetem o mesmo nome
+const DECOYS = 13
+const BATCH = 4
 // Desfoque da capa por tentativa (índice = nº de erros)
 const BLURS = [28, 18, 11, 6, 3, 1]
 
+interface AlbumOption {
+  album: string
+  artist: string
+}
+
 interface DayState {
+  /** Nomes dos álbuns já chutados, na ordem */
   guesses: string[]
   status: 'playing' | 'won' | 'lost'
 }
 
 export function CoverDaily() {
   const answer = useMemo(() => dailyCoverAnswer(), [])
+  const decoys = useMemo(() => dailyCoverDecoys(answer, DECOYS), [answer])
 
-  const [state, setState] = useState<DayState>(() => loadDayState<DayState>('cover') ?? { guesses: [], status: 'playing' })
+  const [state, setState] = useState<DayState>(
+    () => loadDayState<DayState>('cover-album') ?? { guesses: [], status: 'playing' },
+  )
   const [track, setTrack] = useState<TrackInfo | null>(null)
+  const [options, setOptions] = useState<AlbumOption[]>([])
   const [loadError, setLoadError] = useState(false)
   const [retry, setRetry] = useState(0)
-  const [shakeKey, setShakeKey] = useState(0)
+  const [wrongPick, setWrongPick] = useState<string | null>(null)
   const [stats, setStats] = useState<Stats>(() => loadStats('cover'))
-  const { play, stop, playing } = usePreviewPlayer()
   const celebrated = useRef(false)
 
+  // Capa da resposta + nomes de álbum das iscas, que formam as opções de palpite
   useEffect(() => {
     let alive = true
     setLoadError(false)
-    getTrack(answer)
-      .then((t) => {
+    const build = async () => {
+      const main = await getAlbumTrack(answer)
+      if (!alive) return
+      if (!main?.artworkUrl || !main.album) {
+        setLoadError(true)
+        return
+      }
+      setTrack(main)
+
+      const seen = new Set([albumKey(main.album)])
+      const opts: AlbumOption[] = [{ album: main.album, artist: answer.artist }]
+      // Em lotes e só até completar a grade: quando o catálogo não vem do banco, cada
+      // isca custa uma busca na iTunes — uma rajada de 13 esbarraria no rate limit.
+      for (let i = 0; i < decoys.length && opts.length < OPTIONS; i += BATCH) {
+        const batch = await Promise.all(
+          decoys.slice(i, i + BATCH).map((s) =>
+            getAlbumTrack(s)
+              .then((info) => ({ song: s, info }))
+              .catch(() => ({ song: s, info: null as TrackInfo | null })),
+          ),
+        )
         if (!alive) return
-        if (t) setTrack(t)
-        else setLoadError(true)
-      })
-      .catch(() => alive && setLoadError(true))
+        for (const { song, info } of batch) {
+          if (opts.length >= OPTIONS) break
+          if (!info?.album || seen.has(albumKey(info.album))) continue
+          seen.add(albumKey(info.album))
+          opts.push({ album: info.album, artist: song.artist })
+        }
+      }
+      setOptions(seededShuffle(opts, dailyRng('cover:grid')))
+    }
+    build().catch(() => alive && setLoadError(true))
     return () => {
       alive = false
     }
-  }, [answer, retry])
+  }, [answer, decoys, retry])
 
-  useEffect(() => saveDayState('cover', state), [state])
+  useEffect(() => saveDayState('cover-album', state), [state])
 
   useEffect(() => {
     if (state.status === 'won' && !celebrated.current) {
@@ -61,6 +98,7 @@ export function CoverDaily() {
   const attempts = state.guesses.length
   const done = state.status !== 'playing'
   const blur = done ? 0 : BLURS[Math.min(attempts, MAX - 1)]
+  const correct = (album: string) => !!track && albumKey(album) === albumKey(track.album)
 
   const finish = (guesses: string[], won: boolean) => {
     setState({ guesses, status: won ? 'won' : 'lost' })
@@ -69,24 +107,25 @@ export function CoverDaily() {
       won,
       attempts: guesses.length,
       score: won ? 7 - guesses.length : 0,
-      squares: guesses.map((g) => (g === answer.id ? '🟩' : '🟥')).join(''),
+      squares: guesses.map((g) => (correct(g) ? '🟩' : '🟥')).join(''),
     })
   }
 
-  const guess = (songId: string) => {
-    if (done) return
-    const next = [...state.guesses, songId]
-    if (songId === answer.id) {
+  const guess = (album: string) => {
+    if (done || wrongPick) return
+    const next = [...state.guesses, album]
+    if (correct(album)) {
       finish(next, true)
       return
     }
-    setShakeKey((k) => k + 1)
+    setWrongPick(album)
+    window.setTimeout(() => setWrongPick(null), 650)
     if (next.length >= MAX) finish(next, false)
     else setState({ guesses: next, status: 'playing' })
   }
 
   const shareText = () => {
-    const squares = state.guesses.map((g) => (g === answer.id ? '🟩' : '🟥')).join('')
+    const squares = state.guesses.map((g) => (correct(g) ? '🟩' : '🟥')).join('')
     return `Songsfy 🖼️ Capa do Dia #${dayNumber()}\n${squares}${state.status === 'lost' ? '❌' : ''}\n${
       state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…'
     }`
@@ -96,7 +135,7 @@ export function CoverDaily() {
     mode: 'Capa do Dia',
     emoji: '🖼️',
     day: dayNumber(),
-    cells: state.guesses.map((g) => (g === answer.id ? 'ok' : 'bad')),
+    cells: state.guesses.map((g) => (correct(g) ? 'ok' : 'bad')),
     headline: state.status === 'won' ? `Acertei em ${attempts}/${MAX}!` : 'Não foi dessa vez…',
     stats: [
       { label: 'Sequência', value: stats.streak },
@@ -142,18 +181,16 @@ export function CoverDaily() {
       {!done && (
         <>
           <p className="game__help">
-            De quem é essa capa? A imagem fica mais nítida a cada erro — <strong>{MAX - attempts}</strong>{' '}
+            De qual álbum é essa capa? A imagem fica mais nítida a cada erro — <strong>{MAX - attempts}</strong>{' '}
             {MAX - attempts === 1 ? 'tentativa restante' : 'tentativas restantes'}.
           </p>
 
           <AnimatePresence>
-            {(attempts >= 2 || attempts >= 4) && (
+            {attempts >= 2 && (
               <motion.div className="hints" layout>
-                {attempts >= 2 && (
-                  <motion.div className="hints__chip" initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }}>
-                    <span>📅</span> Lançamento: <strong>{answer.year}</strong>
-                  </motion.div>
-                )}
+                <motion.div className="hints__chip" initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }}>
+                  <span>📅</span> Lançamento: <strong>{answer.year}</strong>
+                </motion.div>
                 {attempts >= 4 && (
                   <motion.div className="hints__chip" initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }}>
                     <span>🎼</span> Gênero: <strong>{answer.genre}</strong>
@@ -163,7 +200,34 @@ export function CoverDaily() {
             )}
           </AnimatePresence>
 
-          <Guessbox exclude={state.guesses} onGuess={guess} shakeKey={shakeKey} />
+          {options.length === 0 ? (
+            <p className="game__help">Carregando os álbuns…</p>
+          ) : (
+            <div className="optgrid">
+              {options.map((o, i) => {
+                const used = state.guesses.some((g) => albumKey(g) === albumKey(o.album))
+                return (
+                  <motion.button
+                    key={o.album}
+                    type="button"
+                    className={`optcard ${used ? 'optcard--used' : ''} ${wrongPick === o.album ? 'optcard--wrong' : ''}`}
+                    disabled={used}
+                    onClick={() => guess(o.album)}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={wrongPick === o.album ? { x: [0, -8, 8, -6, 6, 0], opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+                    transition={
+                      wrongPick === o.album ? { duration: 0.45 } : { delay: i * 0.05, type: 'spring', stiffness: 260, damping: 22 }
+                    }
+                    whileHover={used ? {} : { y: -4, scale: 1.03 }}
+                    whileTap={used ? {} : { scale: 0.96 }}
+                  >
+                    <strong>{o.album}</strong>
+                    <span>{o.artist}</span>
+                  </motion.button>
+                )
+              })}
+            </div>
+          )}
 
           <div className="attempts">
             {Array.from({ length: MAX }, (_, i) => {
@@ -175,7 +239,7 @@ export function CoverDaily() {
                   initial={g ? { scale: 0.9, opacity: 0 } : false}
                   animate={{ scale: 1, opacity: 1 }}
                 >
-                  {g ? `❌ ${gameSongById(g)?.title} — ${gameSongById(g)?.artist}` : `Tentativa ${i + 1}`}
+                  {g ? `❌ ${g}` : `Tentativa ${i + 1}`}
                 </motion.div>
               )
             })}
@@ -189,20 +253,13 @@ export function CoverDaily() {
             {state.status === 'won' ? `Acertou em ${attempts}/${MAX}! 🎉` : 'Não foi dessa vez… 😅'}
           </h2>
           <p className="result__song">
-            <strong>{answer.title}</strong> — {answer.artist}
+            <strong>{track?.album}</strong> — {answer.artist}
           </p>
           <p className="result__meta">
-            {answer.genre} · {answer.year} {track?.album ? `· ${track.album}` : ''}
+            {answer.genre} · {answer.year}
           </p>
 
-          {track && (
-            <button type="button" className="btn btn--play" onClick={() => (playing ? stop() : play(track.previewUrl))}>
-              {playing ? '◼ Parar' : '▶ Ouvir prévia'}
-              <Equalizer active={playing} bars={4} />
-            </button>
-          )}
-
-          <div className="result__squares">{state.guesses.map((g, i) => <span key={i}>{g === answer.id ? '🟩' : '🟥'}</span>)}</div>
+          <div className="result__squares">{state.guesses.map((g, i) => <span key={i}>{correct(g) ? '🟩' : '🟥'}</span>)}</div>
 
           <ShareButton text={shareText()} story={storyData()} />
 
