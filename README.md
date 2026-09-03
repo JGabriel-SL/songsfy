@@ -51,7 +51,7 @@ O app roda em dois modos:
 ### Ativando o modo online
 
 1. **Crie um projeto no [Supabase](https://supabase.com)** (plano free).
-2. **Rode a migração**: abra o *SQL Editor* do projeto, cole o conteúdo de [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql) e execute. Isso cria tabelas, RLS, RPCs, views e o seed das 82 músicas curadas.
+2. **Rode as migrações**: abra o *SQL Editor* do projeto e execute, em ordem, os arquivos de [supabase/migrations/](supabase/migrations/) (ou `supabase db push`). A 0001 cria tabelas, RLS, RPCs, views e o seed das músicas curadas; as seguintes adicionam Batalha, cron, Amigos e push.
 3. **Publique a função de catálogo**: instale o [Supabase CLI](https://supabase.com/docs/guides/cli), faça `supabase login`, vincule o projeto (`supabase link --project-ref SEU_REF`) e rode `supabase functions deploy refresh-catalog`. Defina o secret: `supabase secrets set CRON_SECRET=um-valor-secreto`.
 4. **Execute a função uma vez** para preencher as prévias e gerar os desafios de hoje:
    `curl -X POST https://SEU-PROJETO.supabase.co/functions/v1/refresh-catalog -H "x-cron-secret: um-valor-secreto"`
@@ -61,6 +61,26 @@ O app roda em dois modos:
 7. **Configure o app**: copie `.env.example` para `.env.local`, preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Settings → API do projeto) e rode `npm run build`.
 
 Sem qualquer um desses passos o app continua funcionando no modo local — os botões de conta/ranking explicam o que falta.
+
+### Amigos e comparativo por modo
+
+Jogadores logados podem adicionar amigos (por apelido ou por um **código de 6 letras** / link `?friend=CODE`) e comparar pontos **separados por modo de jogo**: resultado de hoje, pontos da semana (Música/Capa: `(7 − tentativas) × 10` por vitória; Músicas: `acertos × 10` por categoria), sequência, vitórias e recordes arcade. O Ranking ganha os filtros **Global / Amigos** e **Hoje / Semana**.
+
+1. Rode a migração [supabase/migrations/0006_friends.sql](supabase/migrations/0006_friends.sql) (tabela `friendships`, view `weekly_mode_points`, RPCs e código de amigo nos perfis).
+2. Pronto — a tela **👥 Amigos** aparece na home. Pedidos e aceites atualizam ao vivo via Realtime enquanto o app está aberto.
+
+### Notificações push (pedido de amizade chegando no celular)
+
+Opcional. Usa Web Push com chaves VAPID; o envio sai de uma Edge Function disparada por um trigger do banco (mesmo esquema `pg_net` + Vault da migração 0005).
+
+1. Gere as chaves uma vez: `npx web-push generate-vapid-keys`.
+2. Segredos da função: `supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:voce@exemplo.com` (o `CRON_SECRET` já existe do passo do catálogo).
+3. Publique a função: `supabase functions deploy send-push`.
+4. Rode a migração [supabase/migrations/0007_push.sql](supabase/migrations/0007_push.sql) (tabela `push_subscriptions`, RPCs e trigger). Ela reaproveita os segredos `project_url` / `cron_secret` do Vault; sem eles o trigger só ignora e o aviso fica restrito ao app aberto.
+5. Coloque a chave **pública** no build: `VITE_VAPID_PUBLIC_KEY` no `.env.local` (ou `VAPID_PUBLIC_KEY` na Vercel) e faça `npm run build`.
+6. Na tela Amigos, toque em **Ativar avisos**. Teste com `npm run preview` — em `npm run dev` o service worker não é gerado.
+
+Limitações: no iPhone o push só funciona com o app **instalado na tela inicial** (iOS 16.4+); a tela mostra essa dica. Ao sair da conta, o dispositivo é desassinado. Para depurar um envio: `select * from net._http_response order by id desc limit 5;` e os logs da função no dashboard.
 
 ## iTunes Search API — como é usada e limitações
 

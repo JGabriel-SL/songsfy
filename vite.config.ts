@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const supabaseUrl = env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ?? ''
   const supabaseAnonKey = env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? ''
+  // Chave pública VAPID (Web Push). Opcional: sem ela o botão de notificações fica oculto.
+  const vapidPublicKey = env.VAPID_PUBLIC_KEY ?? env.VITE_VAPID_PUBLIC_KEY ?? ''
   console.log(
     `[songsfy] Supabase no build: url=${supabaseUrl ? supabaseUrl : 'AUSENTE'} · anonKey=${supabaseAnonKey ? 'ok' : 'AUSENTE'}`,
   )
@@ -18,6 +20,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
+      'import.meta.env.VITE_VAPID_PUBLIC_KEY': JSON.stringify(vapidPublicKey),
     },
     // host: true → escuta em todas as interfaces (IPv4 incluso); sem isso, no Windows
     // o Vite pode subir só em [::1] (IPv6) e o ngrok, que disca 127.0.0.1, é recusado
@@ -72,6 +75,8 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          // Handler de Web Push (public/push-sw.js) anexado ao SW gerado pelo Workbox
+          importScripts: ['push-sw.js'],
           // API do iTunes: rede primeiro, cache como fallback offline
           runtimeCaching: [
             {

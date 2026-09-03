@@ -1,0 +1,40 @@
+{
+  "pop": [
+    "Taylor Swift", "Dua Lipa", "The Weeknd", "Ariana Grande", "Bruno Mars",
+    "Ed Sheeran", "Billie Eilish", "Lady Gaga", "Rihanna", "Adele",
+    "Harry Styles", "Olivia Rodrigo", "Justin Bieber", "Katy Perry", "Shawn Mendes",
+    "Anitta", "Luísa Sonza", "Sabrina Carpenter", "Michael Jackson", "Madonna"
+  ],
+  "rock": [
+    "Queen", "Nirvana", "Guns N' Roses", "Bon Jovi", "Red Hot Chili Peppers",
+    "Linkin Park", "Foo Fighters", "Coldplay", "Imagine Dragons", "Arctic Monkeys",
+    "AC/DC", "The Beatles", "Metallica", "Green Day", "Oasis",
+    "Legião Urbana", "Titãs", "Capital Inicial", "Skank", "Charlie Brown Jr.",
+    "Pitty", "CPM 22", "Engenheiros do Hawaii", "Paralamas do Sucesso", "Cazuza"
+  ],
+  "brasil": [
+    "Tim Maia", "Jorge Ben Jor", "Caetano Veloso", "Gilberto Gil", "Chico Buarque",
+    "Elis Regina", "Djavan", "Marisa Monte", "Tribalistas", "Roberto Carlos",
+    "Zeca Pagodinho", "Grupo Revelação", "Sorriso Maroto", "Thiaguinho", "Ferrugem",
+    "Ivete Sangalo", "Claudia Leitte", "Chiclete com Banana", "Ludmilla", "Kevinho",
+    "Alceu Valença", "Wesley Safadão", "Anavitória", "Nando Reis", "Seu Jorge"
+  ],
+  "sertanejo": [
+    "Marília Mendonça", "Chitãozinho & Xororó", "Zezé Di Camargo & Luciano", "Leonardo", "Bruno & Marrone",
+    "Gusttavo Lima", "Luan Santana", "Jorge & Mateus", "Henrique & Juliano", "Maiara & Maraisa",
+    "Simone & Simaria", "Zé Neto & Cristiano", "Matheus & Kauan", "Michel Teló", "Ana Castela",
+    "Israel & Rodolffo", "Hugo & Guilherme", "Paula Fernandes", "Victor & Leo", "Lauana Prado"
+  ],
+  "eletronica": [
+    "Alok", "Vintage Culture", "David Guetta", "Calvin Harris", "Avicii",
+    "Martin Garrix", "Swedish House Mafia", "Daft Punk", "The Chainsmokers", "Kygo",
+    "Marshmello", "Tiësto", "Zedd", "Skrillex", "Deadmau5",
+    "KVSH", "Bruno Be", "Dubdogz", "Fred again..", "Peggy Gou"
+  ],
+  "hiphop": [
+    "Racionais MC's", "Emicida", "Criolo", "Djonga", "Matuê",
+    "Sabotage", "Marcelo D2", "BK'", "Filipe Ret", "L7NNON",
+    "Eminem", "Drake", "Kendrick Lamar", "Kanye West", "Travis Scott",
+    "Snoop Dogg", "50 Cent", "Nicki Minaj", "Post Malone", "Cardi B"
+  ]
+}

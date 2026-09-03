@@ -4,3 +4,7 @@ project_id = "songsfy"
 [functions.refresh-catalog]
 # A função é protegida pelo header x-cron-secret (ver index.ts), não por JWT
 verify_jwt = false
+
+[functions.send-push]
+# Chamada pelo trigger friendships_notify via pg_net, protegida por x-cron-secret
+verify_jwt = false
