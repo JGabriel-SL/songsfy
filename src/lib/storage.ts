@@ -27,6 +27,27 @@ export function saveDayState(mode: string, state: unknown): void {
   write(`songsfy:day:${todayKey()}:${mode}`, state)
 }
 
+// ─── Trava do dia vinda da conta ───
+// O progresso acima é do aparelho. Quem já jogou fica registrado em `results`, no
+// servidor — sem ler isso de volta, trocar de navegador, reinstalar o PWA ou entrar
+// pela primeira vez num aparelho liberava o desafio de novo. A trava guarda só o
+// resumo do resultado; os palpites em si não são reconstituíveis.
+
+export interface DayLock {
+  won: boolean
+  attempts: number | null
+  score: number | null
+  squares: string | null
+}
+
+export function loadDayLock(mode: string): DayLock | null {
+  return read<DayLock>(`songsfy:done:${todayKey()}:${mode}`)
+}
+
+export function saveDayLock(mode: string, lock: DayLock): void {
+  write(`songsfy:done:${todayKey()}:${mode}`, lock)
+}
+
 // ─── Recordes dos modos arcade ───
 
 export function loadBest(mode: string): number {

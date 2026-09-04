@@ -5,7 +5,8 @@ import { dailyRng, dayNumber, seededShuffle } from '../lib/daily'
 import { dailyCoverAnswer, dailyCoverDecoys, getAlbumTrack } from '../lib/catalog-remote'
 import { albumKey, lastDiag } from '../lib/itunes'
 import { submitResult } from '../lib/sync'
-import { loadDayState, saveDayState, loadStats, recordResult, type Stats } from '../lib/storage'
+import { loadDayLock, loadDayState, saveDayState, loadStats, recordResult, type Stats } from '../lib/storage'
+import { DailyLocked } from './DailyLocked'
 import { Equalizer } from './Equalizer'
 import { ShareButton } from './ShareButton'
 import type { StoryData } from '../lib/storyImage'
@@ -37,6 +38,7 @@ export function CoverDaily() {
   const [state, setState] = useState<DayState>(
     () => loadDayState<DayState>('cover-album') ?? { guesses: [], status: 'playing' },
   )
+  const lock = useMemo(() => loadDayLock('cover-album'), [])
   const [track, setTrack] = useState<TrackInfo | null>(null)
   const [options, setOptions] = useState<AlbumOption[]>([])
   const [loadError, setLoadError] = useState(false)
@@ -144,6 +146,15 @@ export function CoverDaily() {
       { label: 'Jogos', value: stats.played },
     ],
   })
+
+  // Resultado do dia já está na conta, mas o progresso não veio para este aparelho
+  if (lock && state.status === 'playing') {
+    return (
+      <div className="game">
+        <DailyLocked label="Capa do Dia" lock={lock} />
+      </div>
+    )
+  }
 
   if (loadError) {
     return (

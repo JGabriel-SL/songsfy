@@ -6,8 +6,9 @@ import { dayNumber } from '../lib/daily'
 import { dailySetPuzzle, getTrack } from '../lib/catalog-remote'
 import { lastDiag } from '../lib/itunes'
 import { submitResult } from '../lib/sync'
-import { loadDayState, saveDayState } from '../lib/storage'
+import { loadDayLock, loadDayState, saveDayState } from '../lib/storage'
 import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
+import { DailyLocked } from './DailyLocked'
 import { Equalizer } from './Equalizer'
 import { ShareButton } from './ShareButton'
 import type { StoryData } from '../lib/storyImage'
@@ -99,6 +100,8 @@ export function SetDaily() {
     }
   }, [options, targets, retry])
 
+  // A conta é a fonte da verdade sobre já ter jogado hoje (ver hydrateTodayLocks)
+  const lock = useMemo(() => loadDayLock(`set:${category}`), [category])
   const done = state.tracks.every((t) => t.status !== 'pending')
   const score = state.tracks.filter((t) => t.status === 'ok').length
 
@@ -208,6 +211,8 @@ export function SetDaily() {
             🔄 Tentar de novo
           </button>
         </>
+      ) : lock && !done ? (
+        <DailyLocked label={`Músicas do Dia · ${CATEGORIES.find((c) => c.id === category)?.label ?? category}`} lock={lock} />
       ) : done ? (
         <motion.div className="result" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 200, damping: 20 }}>
           <h2 className={`result__title ${score >= 4 ? 'result__title--win' : ''}`}>

@@ -5,8 +5,9 @@ import { dayNumber } from '../lib/daily'
 import { dailySingleAnswer, gameSongById, getTrack } from '../lib/catalog-remote'
 import { lastDiag } from '../lib/itunes'
 import { submitResult } from '../lib/sync'
-import { loadDayState, saveDayState, loadStats, recordResult, type Stats } from '../lib/storage'
+import { loadDayLock, loadDayState, saveDayState, loadStats, recordResult, type Stats } from '../lib/storage'
 import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
+import { DailyLocked } from './DailyLocked'
 import { Guessbox } from './Guessbox'
 import { Vinyl } from './Vinyl'
 import { Equalizer } from './Equalizer'
@@ -33,6 +34,8 @@ export function SingleDaily() {
   const answer = useMemo(() => dailySingleAnswer(), [])
 
   const [state, setState] = useState<DayState>(() => loadDayState<DayState>('single') ?? { guesses: [], status: 'playing' })
+  // A conta é a fonte da verdade sobre já ter jogado hoje (ver hydrateTodayLocks)
+  const lock = useMemo(() => loadDayLock('single'), [])
   const [track, setTrack] = useState<TrackInfo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -124,6 +127,15 @@ export function SingleDaily() {
       { label: 'Jogos', value: stats.played },
     ],
   })
+
+  // Resultado do dia já está na conta, mas o progresso não veio para este aparelho
+  if (lock && state.status === 'playing') {
+    return (
+      <div className="game">
+        <DailyLocked label="Música do Dia" lock={lock} />
+      </div>
+    )
+  }
 
   if (loadError) {
     return (
