@@ -61,8 +61,18 @@ export default defineConfig(({ mode }) => {
           theme_color: '#1c0c14',
           background_color: '#1c0c14',
           display: 'standalone',
+          display_override: ['standalone'],
           orientation: 'portrait',
           start_url: '/',
+          id: '/',
+          scope: '/',
+          // Atalhos ao segurar o ícone na tela inicial (Android/desktop). O `?screen=`
+          // é consumido por initialScreen() em src/App.tsx.
+          shortcuts: [
+            { name: 'Música do Dia', short_name: 'Música', url: '/?screen=single' },
+            { name: 'Capa do Dia', short_name: 'Capa', url: '/?screen=cover' },
+            { name: 'Amigos', short_name: 'Amigos', url: '/?screen=friends' },
+          ],
           icons: [
             { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
             { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },

@@ -11,25 +11,14 @@ import { Account } from './components/Account'
 import { Rankings } from './components/Rankings'
 import { Friends } from './components/Friends'
 import { Equalizer } from './components/Equalizer'
+import { AppBar, TabBar, TITLES } from './components/AppShell'
 import { AuthProvider } from './lib/auth'
 import { FriendsProvider, useFriends } from './lib/friends'
+import { usePushStatus } from './lib/push'
 import { initRemoteData } from './lib/catalog-remote'
 import { flushQueue } from './lib/sync'
 
 export type Screen = 'home' | 'single' | 'set' | 'cover' | 'marathon' | 'blitz' | 'battle' | 'account' | 'rankings' | 'friends'
-
-const TITLES: Record<Screen, string> = {
-  home: '',
-  single: '🎧 Música do Dia',
-  set: '🔥 Músicas do Dia',
-  cover: '🖼️ Capa do Dia',
-  marathon: '🏃 Maratona',
-  blitz: '⚡ Relâmpago',
-  battle: '⚔️ Batalha',
-  account: '👤 Conta',
-  rankings: '🏆 Ranking',
-  friends: '👥 Amigos',
-}
 
 // Tela inicial a partir da URL: ?room=CODE (convite de Batalha), ?friend=CODE (convite de
 // amigo) ou ?screen=friends (clique numa notificação). O parâmetro `screen` é consumido aqui.
@@ -46,10 +35,13 @@ function initialScreen(): Screen {
   return 'home'
 }
 
-// Aviso flutuante de amizade (novo pedido / pedido aceito), alimentado pelo FriendsProvider
+// Aviso flutuante de amizade (novo pedido / pedido aceito), alimentado pelo FriendsProvider.
+// Com o push ligado, o sistema já mostra a notificação — o toast só entra quando ele é o
+// único canal, para o mesmo evento não chegar duas vezes.
 function FriendToast({ onOpen }: { onOpen: () => void }) {
   const { toast, dismissToast } = useFriends()
-  if (!toast) return null
+  const pushStatus = usePushStatus()
+  if (!toast || pushStatus === 'on') return null
   return (
     <motion.button
       type="button"
@@ -99,14 +91,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            {screen !== 'home' && (
-              <header className="topbar">
-                <button type="button" className="topbar__back" onClick={() => setScreen('home')} aria-label="Voltar">
-                  ←
-                </button>
-                <h1 className="topbar__title">{TITLES[screen]}</h1>
-              </header>
-            )}
+            <AppBar screen={screen} onNavigate={setScreen} />
 
             <motion.main
               key={screen}
@@ -126,6 +111,8 @@ export default function App() {
               {screen === 'rankings' && <Rankings onNavigate={setScreen} />}
               {screen === 'friends' && <Friends />}
             </motion.main>
+
+            <TabBar screen={screen} onNavigate={setScreen} />
             <FriendToast onOpen={() => setScreen('friends')} />
           </>
         )}

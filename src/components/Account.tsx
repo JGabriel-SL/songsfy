@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../lib/auth'
+import { PushSettings } from './PushSettings'
 
 const AVATARS = ['🎧', '🎤', '🎸', '🎹', '🥁', '🎷', '🎺', '🎻', '📀', '🔥', '⚡', '🌟', '🦜', '🐆', '🌵', '🍍']
 
@@ -121,6 +122,8 @@ export function Account() {
             Sair da conta
           </button>
         </div>
+
+        <PushSettings />
       </motion.div>
     )
   }

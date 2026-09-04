@@ -18,6 +18,8 @@
   --gradient-soft: linear-gradient(120deg, rgba(255, 192, 46, 0.18), rgba(255, 46, 136, 0.18));
   --shadow: 0 12px 40px rgba(255, 77, 90, 0.25);
   --radius: 20px;
+  --appbar-h: 56px;
+  --tabbar-h: 62px;
   font-family: 'Outfit', system-ui, 'Segoe UI', sans-serif;
 }
 
@@ -31,6 +33,8 @@ body {
   padding: 0;
   /* PWA: rolagem normal, mas sem pinca nem duplo-toque para dar zoom */
   touch-action: pan-x pan-y;
+  /* e sem "puxar para atualizar" nem elástico nas pontas, como num app nativo */
+  overscroll-behavior-y: contain;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -50,6 +54,9 @@ button {
   border: none;
   color: inherit;
   background: none;
+  /* sem o flash cinza do Android e sem selecionar o rótulo ao segurar */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .app {
@@ -57,10 +64,12 @@ button {
   min-height: 100svh;
   max-width: 640px;
   margin: 0 auto;
-  /* safe-area: no iPhone (viewport-fit=cover + status bar translúcida) o conteúdo
-     vai por baixo do notch/Dynamic Island e da home bar — compensa com env() */
-  padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
-    calc(48px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+  /* O conteúdo rola por baixo das barras fixas: reserva a altura das duas. A safe-area
+     cobre o notch/Dynamic Island em cima e a home bar embaixo (viewport-fit=cover). */
+  padding-top: calc(var(--appbar-h) + env(safe-area-inset-top, 0px) + 14px);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 18px);
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
 }
@@ -97,33 +106,134 @@ button {
   flex-direction: column;
 }
 
-/* ─── Topbar ─── */
-.topbar {
-  position: relative;
-  z-index: 2;
+/* ─── Casca do app: barra de topo e abas, fixas na tela ─── */
+.appbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top, 0px);
+  /* var(--bg) com alpha — o conteúdo passa desfocado por baixo */
+  background: rgba(28, 12, 20, 0.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+}
+.appbar__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  height: var(--appbar-h);
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0 16px;
+  gap: 10px;
+  padding-left: calc(12px + env(safe-area-inset-left, 0px));
+  padding-right: calc(12px + env(safe-area-inset-right, 0px));
 }
-.topbar__back {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+.appbar__back {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
   background: var(--surface);
   border: 1px solid var(--border);
-  font-size: 20px;
+  font-size: 19px;
   transition: background 0.2s, transform 0.2s;
 }
-.topbar__back:hover { background: var(--surface-2); transform: translateX(-3px); }
-.topbar__title {
-  font-size: 22px;
-  font-weight: 800;
+.appbar__back:hover { background: var(--surface-2); transform: translateX(-3px); }
+.appbar__mark { flex: none; width: 40px; text-align: center; font-size: 20px; }
+.appbar__title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appbar__title--brand {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
   background: var(--gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+.appbar__profile {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 45%;
+  padding: 7px 12px 7px 9px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 13px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.appbar__profile:hover { background: var(--surface-2); }
+.appbar__profile--on { border-color: var(--amber); background: var(--gradient-soft); }
+.appbar__avatar { font-size: 17px; line-height: 1; }
+.appbar__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Tela estreita: o avatar sozinho já identifica o perfil */
+@media (max-width: 360px) {
+  .appbar__name { display: none; }
+}
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(28, 12, 20, 0.88);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-top: 1px solid var(--border);
+}
+.tabbar__inner {
+  max-width: 640px;
+  margin: 0 auto;
+  height: var(--tabbar-h);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.tabbar__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: color 0.2s;
+}
+.tabbar__icon { font-size: 20px; line-height: 1; transition: transform 0.2s; }
+.tabbar__item--on { color: var(--amber); }
+.tabbar__item--on .tabbar__icon { transform: translateY(-2px) scale(1.1); }
+.tabbar__badge {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
 }
 
 /* ─── Home ─── */
@@ -838,12 +948,7 @@ button {
   min-height: 60svh;
 }
 
-/* ─── Chips do topo da home (conta / ranking) ─── */
-.home__topactions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
+/* ─── Chips (filtros de categoria, ajustes da Batalha) ─── */
 .chip {
   padding: 8px 16px;
   border-radius: 999px;
@@ -1304,9 +1409,9 @@ button {
 .toast--global {
   position: fixed;
   left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
-  z-index: 20;
+  z-index: 40;
   max-width: calc(100vw - 32px);
   background: var(--bg-2);
   border-color: var(--amber);
@@ -1315,3 +1420,15 @@ button {
   text-align: left;
 }
 .toast__cta { color: var(--amber); margin-left: 6px; font-weight: 900; }
+
+/* ─── Toque: no celular o :hover gruda depois do clique ─── */
+@media (hover: none) {
+  .appbar__back:hover,
+  .appbar__profile:hover,
+  .chip:hover,
+  .mode-card:hover,
+  .trackpick__card:hover:not(:disabled) {
+    transform: none;
+  }
+  .tabbar__item:active .tabbar__icon { transform: scale(0.9); }
+}

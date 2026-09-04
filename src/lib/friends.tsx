@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { supabase } from './supabase'
 import { todayKey } from './daily'
 import { useAuth } from './auth'
+import { setAppBadge } from './push'
 
 // ─── Tipos ───
 
@@ -292,6 +293,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
     })
   }, [myId, inviteCode, refresh])
 
+  // Contador no ícone do app (tela inicial): pedidos esperando resposta
+  const pendingCount = requests.filter((r) => r.direction === 'incoming').length
+  useEffect(() => {
+    setAppBadge(myId ? pendingCount : 0)
+  }, [myId, pendingCount])
+
   // Toast some sozinho
   useEffect(() => {
     if (!toast) return
@@ -315,7 +322,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
       friends,
       me,
       requests,
-      pendingCount: requests.filter((r) => r.direction === 'incoming').length,
+      pendingCount,
       friendIds: friends.map((f) => f.user_id),
       loading,
       error,
@@ -328,7 +335,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
       accept: (id) => mutate(() => friendsApi.accept(id)),
       remove: (id) => mutate(() => friendsApi.remove(id)),
     }
-  }, [overview, requests, loading, error, inviteCode, inviteNotice, toast, refresh, mutate])
+  }, [overview, requests, pendingCount, loading, error, inviteCode, inviteNotice, toast, refresh, mutate])
 
   return <FriendsContext.Provider value={value}>{children}</FriendsContext.Provider>
 }
