@@ -2,6 +2,7 @@
 // O envio acontece no servidor (Edge Function send-push, disparada por trigger);
 // aqui só cuidamos da permissão, da assinatura e de registrá-la no Supabase.
 
+import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
 export const VAPID_PUBLIC_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) || undefined
@@ -50,8 +51,11 @@ async function currentSubscription(): Promise<PushSubscription | null> {
 
 export async function getPushStatus(): Promise<PushStatus> {
   if (!VAPID_PUBLIC_KEY) return 'unconfigured'
-  if (isIos() && !isStandalone()) return pushSupported() ? 'off' : 'ios-not-installed'
   if (!pushSupported()) return 'unsupported'
+  // No iOS a Push API existe no Safari desde a 16.4, mas o subscribe só funciona com o
+  // PWA instalado na tela inicial. Sem essa checagem antes, o botão "Ativar" aparece e
+  // estoura na cara do usuário — melhor já explicar o que falta.
+  if (isIos() && !isStandalone()) return 'ios-not-installed'
   if (Notification.permission === 'denied') return 'denied'
   const sub = await currentSubscription().catch(() => null)
   return sub ? 'on' : 'off'
@@ -115,4 +119,47 @@ export async function unsubscribePushOnSignOut(): Promise<void> {
   if (!sub) return
   await supabase.rpc('push_unsubscribe', { p_endpoint: sub.endpoint })
   // mantém a assinatura local: se outra conta logar, syncPushSubscription a reatribui
+}
+
+// ─── Estado compartilhado ───
+// Quem liga/desliga (PushSettings) e quem só observa (o toast do App, que se cala
+// quando o aviso do sistema já vai chegar) precisam enxergar o mesmo status.
+
+let cachedStatus: PushStatus | null = null
+const statusListeners = new Set<(s: PushStatus) => void>()
+
+/** Relê o status e avisa todos os componentes montados. */
+export async function refreshPushStatus(): Promise<PushStatus> {
+  const status = await getPushStatus()
+  cachedStatus = status
+  for (const listener of statusListeners) listener(status)
+  return status
+}
+
+/** `null` enquanto a primeira leitura não termina. */
+export function usePushStatus(): PushStatus | null {
+  const [status, setStatus] = useState<PushStatus | null>(cachedStatus)
+  useEffect(() => {
+    statusListeners.add(setStatus)
+    if (cachedStatus === null) void refreshPushStatus()
+    else setStatus(cachedStatus)
+    return () => {
+      statusListeners.delete(setStatus)
+    }
+  }, [])
+  return status
+}
+
+// ─── Badge no ícone do app (Android/desktop; iOS ainda ignora) ───
+
+type BadgeNavigator = Navigator & {
+  setAppBadge?: (count?: number) => Promise<void>
+  clearAppBadge?: () => Promise<void>
+}
+
+/** Mostra (ou limpa) o contador na tela inicial — pedidos de amizade pendentes. */
+export function setAppBadge(count: number): void {
+  const nav = navigator as BadgeNavigator
+  const call = count > 0 ? nav.setAppBadge?.(count) : nav.clearAppBadge?.()
+  void call?.catch(() => {}) // sem permissão / sem suporte: silencioso de propósito
 }

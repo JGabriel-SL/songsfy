@@ -78,7 +78,7 @@ Opcional. Usa Web Push com chaves VAPID; o envio sai de uma Edge Function dispar
 3. Publique a função: `supabase functions deploy send-push`.
 4. Rode a migração [supabase/migrations/0007_push.sql](supabase/migrations/0007_push.sql) (tabela `push_subscriptions`, RPCs e trigger). Ela reaproveita os segredos `project_url` / `cron_secret` do Vault; sem eles o trigger só ignora e o aviso fica restrito ao app aberto.
 5. Coloque a chave **pública** no build: `VITE_VAPID_PUBLIC_KEY` no `.env.local` (ou `VAPID_PUBLIC_KEY` na Vercel) e faça `npm run build`.
-6. Na tela Amigos, toque em **Ativar avisos**. Teste com `npm run preview` — em `npm run dev` o service worker não é gerado.
+6. Em **Conta** ou **Amigos**, toque em **Ativar avisos**. Teste com `npm run preview` — em `npm run dev` o service worker não é gerado.
 
 Limitações: no iPhone o push só funciona com o app **instalado na tela inicial** (iOS 16.4+); a tela mostra essa dica. Ao sair da conta, o dispositivo é desassinado. Para depurar um envio: `select * from net._http_response order by id desc limit 5;` e os logs da função no dashboard.
 

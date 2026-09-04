@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { dayNumber } from '../lib/daily'
 import { loadBest } from '../lib/storage'
 import { useAuth } from '../lib/auth'
-import { useFriends } from '../lib/friends'
 import { Equalizer } from './Equalizer'
 import type { Screen } from '../App'
 
@@ -21,25 +20,12 @@ const cardVariants = {
 }
 
 export function Home({ onNavigate }: HomeProps) {
-  const auth = useAuth()
-  const { pendingCount } = useFriends()
+  const auth = useAuth() // o cartão da Batalha muda de texto sem modo online
   const bestMarathon = loadBest('marathon')
   const bestBlitz = loadBest('blitz')
 
   return (
     <div className="home">
-      <motion.div className="home__topactions" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-        <button type="button" className="chip" onClick={() => onNavigate('rankings')}>
-          🏆 Ranking
-        </button>
-        <button type="button" className="chip" onClick={() => onNavigate('friends')}>
-          👥 Amigos
-          {pendingCount > 0 && <span className="chip__badge">{pendingCount}</span>}
-        </button>
-        <button type="button" className="chip" onClick={() => onNavigate('account')}>
-          {auth.user ? `${auth.profile?.avatar_emoji ?? '👤'} ${auth.profile?.nickname ?? 'Perfil'}` : '👤 Entrar'}
-        </button>
-      </motion.div>
       <motion.div
         className="home__hero"
         initial={{ opacity: 0, y: -24 }}

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CATEGORIES } from '../data/catalog'
 import { useAuth } from '../lib/auth'
 import { inviteFriendUrl, nickOf, useFriends, type FriendOverview, type FriendRequest, type TodayEntry } from '../lib/friends'
-import { disablePush, enablePush, getPushStatus, type PushStatus } from '../lib/push'
+import { PushSettings } from './PushSettings'
 import { ShareButton } from './ShareButton'
 
 type Board = 'single' | 'cover' | 'set' | 'marathon' | 'blitz'
@@ -231,59 +231,6 @@ function Requests({ requests }: { requests: FriendRequest[] }) {
             ))}
           </ul>
         </>
-      )}
-    </div>
-  )
-}
-
-// ─── Notificações ───
-
-function PushSettings() {
-  const [status, setStatus] = useState<PushStatus | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    void getPushStatus().then((s) => {
-      if (alive) setStatus(s)
-    })
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  if (!status || status === 'unconfigured' || status === 'unsupported') return null
-
-  const toggle = async () => {
-    setBusy(true)
-    setError(null)
-    if (status === 'on') await disablePush()
-    else {
-      const err = await enablePush()
-      if (err) setError(err)
-    }
-    setStatus(await getPushStatus())
-    setBusy(false)
-  }
-
-  const text =
-    status === 'on' ? 'Você recebe um aviso neste dispositivo quando alguém te adiciona ou aceita seu pedido.'
-    : status === 'denied' ? 'Notificações bloqueadas. Reative nas permissões do site no navegador.'
-    : status === 'ios-not-installed' ? 'No iPhone, instale o Songsfy na tela inicial (Compartilhar → Adicionar à Tela de Início) para receber avisos.'
-    : 'Receba um aviso quando alguém te adicionar ou aceitar seu pedido.'
-
-  return (
-    <div className="friends-push">
-      <div className="friends-push__text">
-        <strong>{status === 'on' ? '🔔 Avisos ativados' : '🔕 Avisos desativados'}</strong>
-        <span>{text}</span>
-        {error && <span className="account-error">{error}</span>}
-      </div>
-      {(status === 'on' || status === 'off') && (
-        <button type="button" className="btn btn--ghost" disabled={busy} onClick={() => void toggle()}>
-          {status === 'on' ? 'Desativar' : 'Ativar'}
-        </button>
       )}
     </div>
   )
