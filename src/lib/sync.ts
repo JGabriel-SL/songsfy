@@ -4,7 +4,7 @@
 
 import { supabase } from './supabase'
 import { todayKey } from './daily'
-import { loadStats } from './storage'
+import { loadStats, saveDayLock } from './storage'
 
 const QUEUE_KEY = 'songsfy:sync:queue:v1'
 const IMPORT_FLAG_KEY = 'songsfy:sync:imported:v1'
@@ -73,6 +73,47 @@ export async function flushQueue(): Promise<void> {
   writeQueue([])
   for (const item of items) {
     await submit(item)
+  }
+}
+
+// O modo no servidor e a chave do estado local divergem em um caso (a Capa do Dia
+// guarda 'cover-album' no aparelho e envia 'cover'); o resto bate.
+const CHAVE_LOCAL: Record<string, string> = { cover: 'cover-album' }
+
+interface ResultRow {
+  mode: string
+  won: boolean
+  attempts: number | null
+  score: number | null
+  squares: string | null
+}
+
+/**
+ * Traz o que a conta já jogou hoje e tranca esses modos neste aparelho.
+ * Chamado ao entrar na conta: sem isso o "já joguei" só existiria no localStorage,
+ * e bastava outro navegador (ou o PWA reinstalado) para refazer o desafio do dia.
+ */
+export async function hydrateTodayLocks(): Promise<void> {
+  if (!supabase) return
+  const { data: session } = await supabase.auth.getSession()
+  const userId = session.session?.user.id
+  if (!userId) return
+
+  // `results` tem select público (ranking), então o filtro por usuário é explícito
+  const { data, error } = await supabase
+    .from('results')
+    .select('mode,won,attempts,score,squares')
+    .eq('user_id', userId)
+    .eq('date', todayKey())
+  if (error || !data) return
+
+  for (const row of data as ResultRow[]) {
+    saveDayLock(CHAVE_LOCAL[row.mode] ?? row.mode, {
+      won: row.won,
+      attempts: row.attempts,
+      score: row.score,
+      squares: row.squares,
+    })
   }
 }
 

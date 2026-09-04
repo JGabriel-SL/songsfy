@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase, onlineEnabled } from './supabase'
-import { flushQueue, importLocalStatsOnce } from './sync'
+import { flushQueue, hydrateTodayLocks, importLocalStatsOnce } from './sync'
 import { syncPushSubscription, unsubscribePushOnSignOut } from './push'
 
 export interface Profile {
@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (u) {
         void loadProfile(u.id)
         void flushQueue()
+        void hydrateTodayLocks()
         void importLocalStatsOnce()
         void syncPushSubscription()
       } else {

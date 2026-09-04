@@ -1561,3 +1561,7 @@ button {
 .battle-invite__title { margin: 0; font-size: 15px; font-weight: 800; }
 .battle-invite__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .battle-invite__list .chip:disabled { opacity: 0.75; }
+
+/* ─── "Você já jogou hoje" (resultado veio da conta, não do aparelho) ─── */
+.locked__squares { margin: 0; font-size: 22px; letter-spacing: 3px; }
+.locked__meta { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-dim); }
