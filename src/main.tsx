@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { watchForUpdates } from './lib/sw-update'
 
 // Atalho de teste: abrir a URL com "?reset" zera o progresso dos desafios do dia
 // (mantém estatísticas e recordes). Ex.: https://meuapp.com/?reset
@@ -17,6 +18,9 @@ if (new URLSearchParams(location.search).has('reset')) {
 for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
   document.addEventListener(type, (e) => e.preventDefault(), { passive: false })
 }
+
+// PWA instalado: procura versão nova ao voltar para o app, sem depender de reinstalar
+watchForUpdates()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
