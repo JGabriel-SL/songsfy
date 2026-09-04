@@ -7,7 +7,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { supabase } from './supabase'
 import { todayKey } from './daily'
 import { useAuth } from './auth'
-import { setAppBadge } from './push'
 
 // ─── Tipos ───
 
@@ -50,12 +49,6 @@ export interface FriendRequest {
   nickname: string | null
   avatar_emoji: string
   created_at: string
-}
-
-export interface FriendToast {
-  id: number
-  kind: 'request' | 'accepted'
-  text: string
 }
 
 // ─── API ───
@@ -183,8 +176,6 @@ interface FriendsContextValue {
   error: string | null
   inviteCode: string | null
   inviteNotice: string | null
-  toast: FriendToast | null
-  dismissToast: () => void
   refresh: () => Promise<void>
   sendRequest: (query: string) => Promise<string | null>
   accept: (id: number) => Promise<string | null>
@@ -205,12 +196,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [inviteCode, setInviteCode] = useState<string | null>(() => consumeFriendInvite())
   const [inviteNotice, setInviteNotice] = useState<string | null>(null)
-  const [toast, setToast] = useState<FriendToast | null>(null)
-
-  // Para detectar novidades (novo pedido recebido / pedido aceito) e avisar com toast
-  const seen = useRef<{ incoming: Set<number>; friends: Set<string> } | null>(null)
   const inflight = useRef<Promise<void> | null>(null)
-  const toastSeq = useRef(0)
 
   const refresh = useCallback(async () => {
     if (!supabase || !myId) return
@@ -224,19 +210,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
         const rows = ov.data ?? []
         setOverview(rows)
         setRequests(reqs)
-
-        const incomingNow = new Set(reqs.filter((r) => r.direction === 'incoming').map((r) => r.id))
-        const friendsNow = new Set(rows.filter((r) => !r.is_me).map((r) => r.user_id))
-        if (seen.current) {
-          const newReq = reqs.find((r) => r.direction === 'incoming' && !seen.current!.incoming.has(r.id))
-          const newFriend = rows.find((r) => !r.is_me && !seen.current!.friends.has(r.user_id))
-          if (newReq) {
-            setToast({ id: ++toastSeq.current, kind: 'request', text: `${newReq.avatar_emoji} ${nickOf(newReq)} quer ser seu amigo` })
-          } else if (newFriend) {
-            setToast({ id: ++toastSeq.current, kind: 'accepted', text: `${newFriend.avatar_emoji} ${nickOf(newFriend)} agora é seu amigo! 🎉` })
-          }
-        }
-        seen.current = { incoming: incomingNow, friends: friendsNow }
       }
     })()
       .catch(() => setError('Não consegui carregar seus amigos.'))
@@ -252,7 +225,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
     if (!supabase || !myId) {
       setOverview([])
       setRequests([])
-      seen.current = null
       return
     }
     setLoading(true)
@@ -293,18 +265,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
     })
   }, [myId, inviteCode, refresh])
 
-  // Contador no ícone do app (tela inicial): pedidos esperando resposta
+  // Badge da aba Amigos
   const pendingCount = requests.filter((r) => r.direction === 'incoming').length
-  useEffect(() => {
-    setAppBadge(myId ? pendingCount : 0)
-  }, [myId, pendingCount])
-
-  // Toast some sozinho
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 6000)
-    return () => clearTimeout(t)
-  }, [toast])
 
   const mutate = useCallback(
     async (fn: () => Promise<{ error: string | null }>): Promise<string | null> => {
@@ -328,14 +290,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
       error,
       inviteCode,
       inviteNotice,
-      toast,
-      dismissToast: () => setToast(null),
       refresh,
       sendRequest: (q) => mutate(() => friendsApi.request(q)),
       accept: (id) => mutate(() => friendsApi.accept(id)),
       remove: (id) => mutate(() => friendsApi.remove(id)),
     }
-  }, [overview, requests, pendingCount, loading, error, inviteCode, inviteNotice, toast, refresh, mutate])
+  }, [overview, requests, pendingCount, loading, error, inviteCode, inviteNotice, refresh, mutate])
 
   return <FriendsContext.Provider value={value}>{children}</FriendsContext.Provider>
 }

@@ -83,6 +83,8 @@ export const battleApi = {
   answer: (roomId: string, round: number, songId: string) =>
     rpc<number>('battle_answer', { p_room: roomId, p_round: round, p_song: songId }),
   advance: (roomId: string) => rpc<null>('battle_advance', { p_room: roomId }),
+  /** Convida um amigo para a sala (vira notificação + push do lado dele). */
+  invite: (roomId: string, friendId: string) => rpc<null>('battle_invite', { p_room: roomId, p_friend: friendId }),
 }
 
 /** Diferença (ms) entre o relógio do servidor e o local: serverNow ≈ Date.now() + offset */

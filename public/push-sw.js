@@ -1,6 +1,6 @@
 // Songsfy — handler de Web Push, anexado ao service worker do Workbox via
 // `workbox.importScripts` (vite.config.ts). Payload enviado pela Edge Function
-// send-push: { title, body, url, tag }.
+// send-push: { title, body, url, tag, id }.
 
 self.addEventListener('push', (event) => {
   let data = {}
@@ -18,7 +18,13 @@ self.addEventListener('push', (event) => {
     renotify: true,
     data: { url: data.url || '/' },
   }
-  event.waitUntil(self.registration.showNotification(title, options))
+  // Além de mostrar o aviso, cutuca a aba aberta para o sino recarregar a lista
+  event.waitUntil(
+    self.registration
+      .showNotification(title, options)
+      .then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+      .then((clients) => clients.forEach((c) => c.postMessage({ type: 'push-received' }))),
+  )
 })
 
 self.addEventListener('notificationclick', (event) => {
