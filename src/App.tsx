@@ -17,10 +17,14 @@ import { FriendsProvider } from './lib/friends'
 import { NotificationsProvider, notificationTarget, useNotifications } from './lib/notifications'
 import { usePushStatus } from './lib/push'
 import { isScreen, type Screen } from './lib/screens'
+import { setUpdateBlocked } from './lib/sw-update'
 import { initRemoteData } from './lib/catalog-remote'
 import { flushQueue } from './lib/sync'
 
 export type { Screen }
+
+// Telas em que uma atualização não pode recarregar a página por baixo do jogador
+const EM_PARTIDA: Screen[] = ['single', 'set', 'cover', 'marathon', 'blitz', 'battle']
 
 // Tela inicial a partir da URL: ?room=CODE (convite de Batalha), ?friend=CODE (convite de
 // amigo) ou ?screen=friends (clique numa notificação). O parâmetro `screen` é consumido aqui.
@@ -74,6 +78,12 @@ export default function App() {
   // (sem isso um desafio aberto do fim da home já abre rolado para baixo)
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 })
+  }, [screen])
+
+  // Uma versão nova só entra fora de partida — recarregar no meio de uma Maratona
+  // ou de uma Batalha jogaria fora o que a pessoa estava fazendo
+  useEffect(() => {
+    setUpdateBlocked(EM_PARTIDA.includes(screen))
   }, [screen])
 
   useEffect(() => {

@@ -96,6 +96,14 @@ A repetição é barrada por um índice único sobre `data ->> 'dedupe'`: o mesm
 
 Limitações: no iPhone o push só funciona com o app **instalado na tela inicial** (iOS 16.4+); a tela mostra essa dica. Ao sair da conta, o dispositivo é desassinado. Para depurar um envio: `select id, status_code, error_msg from net._http_response order by id desc limit 5;`, `select kind, count(*) from notifications group by 1;` e os logs da função no dashboard. Para disparar o lembrete na mão: `select public.notify_daily_reminder();`.
 
+## PWA instalado — como a atualização chega
+
+O `registerSW.js` gerado pelo vite-plugin-pwa só chama `registration.update()` no evento `load`. Num app da tela inicial que fica na memória e é apenas retomado, esse evento não dispara de novo: o app nunca pergunta se saiu versão nova e a única saída seria reinstalar pelo navegador.
+
+[src/lib/sw-update.ts](src/lib/sw-update.ts) resolve isso — pergunta ao voltar para o app (`visibilitychange`), a cada 15 minutos e na abertura. O `sw.js` já sobe com `skipWaiting` + `clientsClaim`, então a versão nova assume sozinha e o `controllerchange` recarrega a página. **Menos durante uma partida**: nas telas de jogo o recarregamento fica guardado e só acontece quando a pessoa volta para a home, para não apagar uma Maratona pela metade.
+
+Do lado do servidor, [vercel.json](vercel.json) mantém `sw.js`, `registerSW.js`, `index.html` e o manifest com `max-age=0, must-revalidate`. Se qualquer um deles for cacheado, o app fica preso na versão antiga mesmo com deploy novo no ar — os arquivos em `/assets/*` têm hash no nome e podem ser cacheados para sempre.
+
 ## iTunes Search API — como é usada e limitações
 
 - **Endpoint**: `GET https://itunes.apple.com/search?term=<título+artista>&media=music&entity=song&limit=25&country=BR` — sem chave, sem cadastro, com CORS liberado (funciona direto do navegador).
