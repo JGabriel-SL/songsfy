@@ -31,10 +31,12 @@ html,
 body {
   margin: 0;
   padding: 0;
-  /* PWA: rolagem normal, mas sem pinca nem duplo-toque para dar zoom */
-  touch-action: pan-x pan-y;
-  /* e sem "puxar para atualizar" nem elástico nas pontas, como num app nativo */
-  overscroll-behavior-y: contain;
+  /* PWA: rola só na vertical (o pan-x deixava arrastar a página de lado), e sem
+     pinça nem duplo-toque para dar zoom */
+  touch-action: pan-y;
+  /* sem "puxar para atualizar" nem elástico nas pontas, como num app nativo */
+  overscroll-behavior: none;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -72,6 +74,9 @@ button {
   padding-right: calc(16px + env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
+  /* a transição de tela entra deslocada 40px para a direita: sem isso ela alarga
+     a página por um instante e dá para arrastar de lado */
+  overflow-x: clip;
 }
 
 /* ─── Blobs de fundo animados ─── */
@@ -1432,3 +1437,127 @@ button {
   }
   .tabbar__item:active .tabbar__icon { transform: scale(0.9); }
 }
+
+/* ─── Sino de avisos (barra de topo) ─── */
+.bell { position: relative; flex: none; }
+.bell__btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 17px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.bell__btn:hover { background: var(--surface-2); }
+.bell__btn--on { border-color: var(--amber); background: var(--gradient-soft); }
+.bell__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  border: 2px solid var(--bg);
+}
+/* Ancorado na janela, não no botão: preso ao botão ele sairia da tela num celular estreito */
+.bell__panel {
+  position: fixed;
+  top: calc(var(--appbar-h) + env(safe-area-inset-top, 0px) + 8px);
+  right: max(12px, calc(50vw - 320px + 12px));
+  z-index: 45;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(62vh, 440px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.bell__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px 8px;
+  font-size: 15px;
+}
+.bell__markall {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--amber);
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+.bell__markall:hover { background: var(--surface); }
+.bell__empty { margin: 0; padding: 4px 16px 18px; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.bell__list { list-style: none; margin: 0; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 2px; }
+.bell__item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background 0.15s;
+}
+.bell__item:hover { background: var(--surface); }
+.bell__item--unread { background: var(--gradient-soft); }
+.bell__emoji { font-size: 18px; line-height: 1.3; flex: none; }
+.bell__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bell__text strong { font-size: 13px; font-weight: 800; }
+.bell__text span { font-size: 12.5px; color: var(--text-dim); line-height: 1.4; }
+.bell__text em { font-size: 11px; color: var(--text-dim); opacity: 0.75; font-style: normal; }
+
+/* ─── Preferências de aviso (tela Conta) ─── */
+.prefs {
+  padding: 16px 18px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.prefs__title { margin: 0 0 10px; font-size: 15px; font-weight: 800; }
+.prefs__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.prefs__row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.prefs__emoji { font-size: 18px; flex: none; }
+.prefs__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.prefs__text strong { font-size: 14px; font-weight: 700; }
+.prefs__text span { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+.prefs__switch {
+  flex: none;
+  width: 46px;
+  height: 27px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: background 0.2s, border-color 0.2s;
+}
+.prefs__switch--on { background: var(--gradient); border-color: transparent; }
+.prefs__switch:disabled { opacity: 0.6; }
+.prefs__knob {
+  display: block;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform 0.2s ease;
+}
+.prefs__switch--on .prefs__knob { transform: translateX(19px); }
+
+/* ─── Convidar amigos para a sala de Batalha ─── */
+.battle-invite { display: flex; flex-direction: column; gap: 8px; }
+.battle-invite__title { margin: 0; font-size: 15px; font-weight: 800; }
+.battle-invite__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.battle-invite__list .chip:disabled { opacity: 0.75; }

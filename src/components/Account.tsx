@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../lib/auth'
 import { PushSettings } from './PushSettings'
+import { NotificationPrefsCard } from './NotificationPrefs'
 
 const AVATARS = ['🎧', '🎤', '🎸', '🎹', '🥁', '🎷', '🎺', '🎻', '📀', '🔥', '⚡', '🌟', '🦜', '🐆', '🌵', '🍍']
 
@@ -124,6 +125,7 @@ export function Account() {
         </div>
 
         <PushSettings />
+        <NotificationPrefsCard />
       </motion.div>
     )
   }

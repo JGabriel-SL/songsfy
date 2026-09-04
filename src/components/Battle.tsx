@@ -5,6 +5,7 @@ import { CATEGORIES } from '../data/catalog'
 import { useAuth } from '../lib/auth'
 import { gameSongById, getTrack } from '../lib/catalog-remote'
 import { battleApi, consumeInviteCode, fetchClockOffset, inviteUrl, useBattleRoom, type RoomSettings, type RoomState } from '../lib/battle'
+import { nickOf, useFriends } from '../lib/friends'
 import { usePreviewPlayer } from '../hooks/usePreviewPlayer'
 import { Equalizer } from './Equalizer'
 import { ShareButton } from './ShareButton'
@@ -276,6 +277,48 @@ function Entry({ inviteCode, onEnter }: { inviteCode: string | null; onEnter: (i
   )
 }
 
+// ─── Convidar amigos direto do lobby (chega como notificação no celular deles) ───
+
+function InviteFriends({ roomId, inRoom }: { roomId: string; inRoom: string[] }) {
+  const { friends } = useFriends()
+  const [busy, setBusy] = useState<string | null>(null)
+  const [done, setDone] = useState<Record<string, true>>({})
+  const [error, setError] = useState<string | null>(null)
+
+  const convidaveis = friends.filter((f) => !inRoom.includes(f.user_id))
+  if (convidaveis.length === 0) return null
+
+  const invite = async (id: string) => {
+    setBusy(id)
+    setError(null)
+    const { error: err } = await battleApi.invite(roomId, id)
+    if (err) setError(err)
+    else setDone((prev) => ({ ...prev, [id]: true }))
+    setBusy(null)
+  }
+
+  return (
+    <div className="battle-invite">
+      <h3 className="battle-invite__title">Chamar amigos</h3>
+      <ul className="battle-invite__list">
+        {convidaveis.map((f) => (
+          <li key={f.user_id}>
+            <button
+              type="button"
+              className={`chip ${done[f.user_id] ? 'chip--on' : ''}`}
+              disabled={busy === f.user_id || !!done[f.user_id]}
+              onClick={() => void invite(f.user_id)}
+            >
+              {f.avatar_emoji} {nickOf(f)} {done[f.user_id] ? '✓' : busy === f.user_id ? '…' : '+'}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {error && <p className="game__error">{error}</p>}
+    </div>
+  )
+}
+
 // ─── Sala (lobby / rodada / revelação / fim) ───
 
 function RoomView({ state, offset, onLeave }: { state: RoomState; offset: number; onLeave: () => void }) {
@@ -386,6 +429,8 @@ function Lobby({
           {room.settings.rounds} rodadas · {room.settings.roundSeconds}s por música · {category ? `${category.emoji} ${category.label}` : '🎲 Todos os estilos'}
         </p>
       </div>
+
+      <InviteFriends roomId={room.id} inRoom={players.map((p) => p.user_id)} />
 
       <h3 className="battle-players__title">
         Jogadores <span>{players.length}</span>

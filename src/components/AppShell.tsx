@@ -1,23 +1,11 @@
-// Casca fixa do app: barra de topo (voltar · título · perfil) e barra de abas
-// embaixo. As duas ficam presas na tela — o conteúdo rola por baixo — para que o
+// Casca fixa do app: barra de topo (voltar · título · sino · perfil) e barra de
+// abas embaixo. As duas ficam presas na tela — o conteúdo rola por baixo — para que o
 // PWA instalado se pareça com um app de verdade, e não com um site rolando inteiro.
 
 import { useAuth } from '../lib/auth'
 import { useFriends } from '../lib/friends'
-import type { Screen } from '../App'
-
-export const TITLES: Record<Screen, string> = {
-  home: 'Songsfy',
-  single: '🎧 Música do Dia',
-  set: '🔥 Músicas do Dia',
-  cover: '🖼️ Capa do Dia',
-  marathon: '🏃 Maratona',
-  blitz: '⚡ Relâmpago',
-  battle: '⚔️ Batalha',
-  account: '👤 Conta',
-  rankings: '🏆 Ranking',
-  friends: '👥 Amigos',
-}
+import { TITLES, type Screen } from '../lib/screens'
+import { NotificationBell } from './NotificationBell'
 
 interface ShellProps {
   screen: Screen
@@ -44,6 +32,8 @@ export function AppBar({ screen, onNavigate }: ShellProps) {
         )}
 
         <h1 className={`appbar__title ${isHome ? 'appbar__title--brand' : ''}`}>{TITLES[screen]}</h1>
+
+        {auth.user && <NotificationBell onNavigate={onNavigate} />}
 
         <button
           type="button"

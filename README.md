@@ -69,18 +69,32 @@ Jogadores logados podem adicionar amigos (por apelido ou por um **código de 6 l
 1. Rode a migração [supabase/migrations/0006_friends.sql](supabase/migrations/0006_friends.sql) (tabela `friendships`, view `weekly_mode_points`, RPCs e código de amigo nos perfis).
 2. Pronto — a tela **👥 Amigos** aparece na home. Pedidos e aceites atualizam ao vivo via Realtime enquanto o app está aberto.
 
-### Notificações push (pedido de amizade chegando no celular)
+### Notificações (push no celular + central de avisos)
 
-Opcional. Usa Web Push com chaves VAPID; o envio sai de uma Edge Function disparada por um trigger do banco (mesmo esquema `pg_net` + Vault da migração 0005).
+Opcional. Usa Web Push com chaves VAPID; o envio sai de uma Edge Function disparada pelo banco (mesmo esquema `pg_net` + Vault da migração 0005).
+
+Todo aviso passa por `public.push_notify()`: ele grava uma linha em `notifications` — que alimenta o sino da barra de topo, o contador no ícone do app e o toast de tela aberta — e só então dispara o push. Evento novo é uma chamada a mais de `push_notify` no SQL, sem tocar no envio.
 
 1. Gere as chaves uma vez: `npx web-push generate-vapid-keys`.
 2. Segredos da função: `supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:voce@exemplo.com` (o `CRON_SECRET` já existe do passo do catálogo).
 3. Publique a função: `supabase functions deploy send-push`.
-4. Rode a migração [supabase/migrations/0007_push.sql](supabase/migrations/0007_push.sql) (tabela `push_subscriptions`, RPCs e trigger). Ela reaproveita os segredos `project_url` / `cron_secret` do Vault; sem eles o trigger só ignora e o aviso fica restrito ao app aberto.
+4. Rode as migrações [0007_push.sql](supabase/migrations/0007_push.sql) (tabela `push_subscriptions` e RPCs de assinatura) e [0008_notifications.sql](supabase/migrations/0008_notifications.sql) (tabelas `notifications` e `notification_prefs`, `push_notify`, os gatilhos dos eventos e o cron do lembrete diário). Elas reaproveitam os segredos `project_url` / `cron_secret` do Vault; sem eles o aviso é gravado e aparece no sino, só não vira push.
 5. Coloque a chave **pública** no build: `VITE_VAPID_PUBLIC_KEY` no `.env.local` (ou `VAPID_PUBLIC_KEY` na Vercel) e faça `npm run build`.
 6. Em **Conta** ou **Amigos**, toque em **Ativar avisos**. Teste com `npm run preview` — em `npm run dev` o service worker não é gerado.
 
-Limitações: no iPhone o push só funciona com o app **instalado na tela inicial** (iOS 16.4+); a tela mostra essa dica. Ao sair da conta, o dispositivo é desassinado. Para depurar um envio: `select * from net._http_response order by id desc limit 5;` e os logs da função no dashboard.
+**O que gera aviso** (cada um pode ser desligado em **Conta → O que avisar**):
+
+| Evento | Quando | Origem |
+| --- | --- | --- |
+| Pedido / aceite de amizade | alguém te adiciona ou aceita seu pedido | trigger `friendships_notify` |
+| Convite de batalha | um amigo te chama da sala dele (botão **Chamar amigos** no lobby) | RPC `battle_invite` |
+| Fim da batalha | a sala termina — só para quem **não** respondeu a última rodada, porque quem respondeu está olhando o resultado | trigger `rooms_notify_finished` |
+| Te ultrapassaram | um amigo passou sua pontuação no desafio do dia; no máximo um por dia/modo | trigger `results_notify_beat` |
+| Lembrete diário | 12:00 (BRT) para quem tem push e ainda não jogou hoje | cron `songsfy-daily-reminder` |
+
+A repetição é barrada por um índice único sobre `data ->> 'dedupe'`: o mesmo aviso não chega duas vezes nem se o gatilho rodar de novo.
+
+Limitações: no iPhone o push só funciona com o app **instalado na tela inicial** (iOS 16.4+); a tela mostra essa dica. Ao sair da conta, o dispositivo é desassinado. Para depurar um envio: `select id, status_code, error_msg from net._http_response order by id desc limit 5;`, `select kind, count(*) from notifications group by 1;` e os logs da função no dashboard. Para disparar o lembrete na mão: `select public.notify_daily_reminder();`.
 
 ## iTunes Search API — como é usada e limitações
 
